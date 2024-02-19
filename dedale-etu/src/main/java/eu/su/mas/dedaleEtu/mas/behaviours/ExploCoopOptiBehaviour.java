@@ -65,7 +65,7 @@ public class ExploCoopOptiBehaviour extends SimpleBehaviour {
 
 		if(this.myMap==null) {
 			this.myMap= new MapRepresentation();
-			this.myAgent.addBehaviour(new ShareMapOptiBehaviour(this.myAgent,500,this.myMap,this.myNextNode,list_agentNames));
+			// this.myAgent.addBehaviour(new ShareMapOptiBehaviour(this.myAgent,500,this.myMap,this.myNextNode,list_agentNames));
 		}
 
 		//0) Retrieve the current position
@@ -106,40 +106,10 @@ public class ExploCoopOptiBehaviour extends SimpleBehaviour {
 				System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
 			}else{
 				//4) select next move.
-				//4.0 FIRST, CHECK THE MESSAGES TO SEE THE OTHER AGENTS NEXT CHOSEN POSITION
-
-				MessageTemplate msgTemplate=MessageTemplate.and(
-					MessageTemplate.MatchProtocol("SHARE-TOPO-POS-ID"),
-					MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-				ACLMessage msgReceived=this.myAgent.receive(msgTemplate);
-				
 				if (myNextNode==null){
 					myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
 				}
-			
-				if (msgReceived!=null) {
-					//SerializableSimpleGraph<String, MapAttribute> receivedMapSender = null;
-					AgentInfo msginfo = null;
-					try {
-						msginfo = (AgentInfo)msgReceived.getContentObject();
-					} catch (UnreadableException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-
-					SerializableSimpleGraph<String, MapAttribute> receivedMapSender = msginfo.getMap();
-					String agentIdSender = msginfo.getAgentId();
-					String nextPositionSender = msginfo.getNextPosition(); //WHAT IF WE RECEIVE MULTIPLE? HOW DO WE STOCK IT?
-					this.myMap.mergeMap(receivedMapSender);
-
-					if (myNextNode == nextPositionSender){ // NOEUD PRIORITAIRE
-						if (Integer.parseInt(agentIdSender) < Integer.parseInt(this.myAgent.getLocalName())){
-							this.myMap.addNode(nextPositionSender, MapAttribute.closed);
-							myNextNode = this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
-							this.myMap.addNode(nextPositionSender, MapAttribute.open);
-						}
-					}
-				}
+				
 				((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 			}
 		}

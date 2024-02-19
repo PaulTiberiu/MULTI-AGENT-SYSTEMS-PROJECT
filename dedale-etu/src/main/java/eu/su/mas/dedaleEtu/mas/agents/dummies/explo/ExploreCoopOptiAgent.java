@@ -6,7 +6,7 @@ import java.util.List;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 
-import eu.su.mas.dedaleEtu.mas.behaviours.ExploCoopOptiBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.FSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 
 import jade.core.behaviours.Behaviour;
@@ -75,7 +75,7 @@ public class ExploreCoopOptiAgent extends AbstractDedaleAgent {
 		 * 
 		 ************************************************/
 
-		lb.add(new ExploCoopOptiBehaviour(this,this.myMap,this.myNextNode,list_agentNames));
+		lb.add(new FSMBehaviour(this,this.myMap,this.myNextNode,list_agentNames));
 
 
 
