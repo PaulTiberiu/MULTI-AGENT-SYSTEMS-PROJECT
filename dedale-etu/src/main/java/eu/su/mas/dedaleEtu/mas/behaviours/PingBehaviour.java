@@ -44,6 +44,7 @@ public class PingBehaviour extends SimpleBehaviour {
 
 	@Override
 	public void action() {
+		exitValue = 0;
 		System.out.println("JE PING");
         ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);
         ping.setProtocol("PING");
