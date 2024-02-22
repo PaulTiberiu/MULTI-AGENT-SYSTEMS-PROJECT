@@ -48,7 +48,6 @@ public class InfoReceptBehaviour extends SimpleBehaviour {
 
 	@Override
 	public void action() {
-
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("SHARE-TOPO-POS-ID"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));

@@ -6,6 +6,7 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 /**
  * <pre>
@@ -26,6 +27,7 @@ public class PingBehaviour extends SimpleBehaviour {
 	private static final long serialVersionUID = 8567689731496787661L;
 	private boolean finished = false;
     private List<String> receivers;
+	private int exitValue = 0;
     
 	/**
 	 * Current knowledge of the agent regarding the environment
@@ -42,6 +44,7 @@ public class PingBehaviour extends SimpleBehaviour {
 
 	@Override
 	public void action() {
+		System.out.println("JE PING");
         ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);
         ping.setProtocol("PING");
         ping.setSender(this.myAgent.getAID());
@@ -54,6 +57,22 @@ public class PingBehaviour extends SimpleBehaviour {
             e.printStackTrace();
         }
         ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
+
+		// myAgent.doWait(10);
+		MessageTemplate msgTemplate=MessageTemplate.and(
+			MessageTemplate.MatchProtocol("ACK"),
+			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage ackRecept=this.myAgent.receive(msgTemplate);
+
+		if(ackRecept!=null){
+			System.out.println("J'AI RECU UN ACK");
+			exitValue = 1;
+		}
+
+	}
+
+	public int onEnd(){
+		return exitValue;
 	}
 
     @Override
