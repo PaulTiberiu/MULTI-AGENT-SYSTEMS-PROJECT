@@ -65,6 +65,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 	public void action() {
 		exitValue = 0;
 		System.out.println("JE BOUGE cmpt = "+cmpt);
+		System.out.println("JE BOUGE nom = "+this.myAgent.getLocalName());
 		if(this.myMap==null) {
 			this.myMap= new MapRepresentation();
 		}
@@ -161,10 +162,12 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 					while(!moved){
 						System.out.println("JE CHERCHE UN AUTRE NOEUD");
+						System.out.println(this.myAgent.getLocalName());
 						for(Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
 							if(!Objects.equals(obs.getLeft().getLocationId(), myNextNode)){
 								if(!Objects.equals(obs.getLeft(), myPosition)){
 									myNextNode = obs.getLeft().getLocationId();
+									System.out.println(myNextNode+this.myAgent.getLocalName());
 									break;
 								}
 							}
@@ -175,10 +178,12 @@ public class ExploBehaviour extends SimpleBehaviour {
 			}
 		}
 		System.out.println(exitValue+" = EXITVALUE");
+		System.out.println("EXITVALUE meaning : 0 = move to move, 1 = move to ping, 2 = move to ackSend");
 	}
 
 	@Override
 	public int onEnd(){
+		System.out.println(exitValue+" = EXITVALUE dans la methode onEnd");
 		return exitValue;
 	}
 
