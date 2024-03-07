@@ -35,7 +35,6 @@ public class ShareMapBehaviour extends SimpleBehaviour {
 	private List<String> receivers;
 	//private Integer cmpt = 0;
 	private String myNextNode;
-	private boolean finished = false;
 	/**
 	 * The agent periodically share its map.
 	 * It blindly tries to send all its graph to its friend(s)  	
@@ -106,7 +105,6 @@ public class ShareMapBehaviour extends SimpleBehaviour {
 			e.printStackTrace();
 		}
 		((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-		finished = true;
 		((ExploreFSMAgent)this.myAgent).setMap(this.myMap);
 	}
 

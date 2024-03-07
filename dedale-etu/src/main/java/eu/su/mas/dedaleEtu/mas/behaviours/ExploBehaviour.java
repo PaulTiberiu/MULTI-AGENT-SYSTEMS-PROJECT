@@ -38,8 +38,6 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 	private static final long serialVersionUID = 8567689731496787661L;
 
-	private boolean finished = false;
-
 	/**
 	 * Current knowledge of the agent regarding the environment
 	 */
@@ -77,13 +75,11 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 		if(pingRecept!=null){
 			exitValue = 2;
-			finished=true;
 		}
 
 		else if(cmpt >= 3){
 			exitValue = 1;
 			cmpt = 0;
-			finished=true;
 		}
 
 		else{
@@ -121,7 +117,6 @@ public class ExploBehaviour extends SimpleBehaviour {
 				//3) while openNodes is not empty, continues.
 				if (!this.myMap.hasOpenNode()){
 					//Explo finished
-					finished=true;
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
 					exitValue = 3;
 				}else{

@@ -25,7 +25,6 @@ import jade.lang.acl.MessageTemplate;
 public class PingBehaviour extends SimpleBehaviour {
 
 	private static final long serialVersionUID = 8567689731496787661L;
-	private boolean finished = false;
     private List<String> receivers;
 	private int exitValue = 0;
     
@@ -69,7 +68,6 @@ public class PingBehaviour extends SimpleBehaviour {
 			System.out.println(myAgent.getName()+" J'AI RECU UN ACK");
 			exitValue = 1;
 		}
-		finished = true;
 	}
 
 	public int onEnd(){
