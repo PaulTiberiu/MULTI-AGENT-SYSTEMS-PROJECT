@@ -1,6 +1,10 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
 import jade.core.behaviours.SimpleBehaviour;
 
 public class StopBehaviour extends SimpleBehaviour {
@@ -19,7 +23,15 @@ public class StopBehaviour extends SimpleBehaviour {
 
 @Override
 public void action() {
-    System.out.println(this.myAgent.getName()+" A FINI");
+    System.out.println(this.myAgent.getName()+" ended exploration in "+((ExploreFSMAgent)this.myAgent).getIteration()+" iterations");
+
+    String repertoireActuel = System.getProperty("user.dir");
+    try (FileWriter writer = new FileWriter(repertoireActuel+"/resources/nbIterations.txt", true)) {
+        // Écrivez la valeur dans le fichier
+        writer.write(myAgent.getName()+" : "+((ExploreFSMAgent)this.myAgent).getIteration()+"\n");
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
 }
 
 @Override

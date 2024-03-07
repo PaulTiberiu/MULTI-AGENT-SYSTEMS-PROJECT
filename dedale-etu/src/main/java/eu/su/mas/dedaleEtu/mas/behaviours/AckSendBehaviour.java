@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.io.IOException;
 import java.util.List;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -25,7 +26,8 @@ public class AckSendBehaviour extends SimpleBehaviour {
 
 @Override
 public void action() {
-    System.out.println(myAgent.getName()+" J ENVOIE UN ACK");
+    ((ExploreFSMAgent)this.myAgent).addIteration();
+    System.out.println("I am "+myAgent.getName()+" and I am sending an ACK");
     ACLMessage ack = new ACLMessage(ACLMessage.INFORM);
     ack.setProtocol("ACK");
     ack.setSender(this.myAgent.getAID());

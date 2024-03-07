@@ -2,8 +2,10 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedale.mas.agent.behaviours.RandomWalkBehaviour;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 import eu.su.mas.dedaleEtu.mas.behaviours.AckSendBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploBehaviour;
@@ -20,6 +22,10 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 
 	private static final long serialVersionUID = -7969469610241668140L;
 	private MapRepresentation myMap;
+	private Integer iteration = 0;
+
+	private HashMap<String, ArrayList<String>> nodesToShare; // key: agent name, value: list of IDs of the nodes to be shared next time we meet this agent
+
 	
 	/************************************************
 	* 
@@ -32,6 +38,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final String ackSend = "ackSend";
 	private static final String shareMap = "shareMap";
 	private static final String stop = "stop";
+	private static final String rdmmove = "rdmmove";
 
 	/**
 	 * This method is automatically called when "agent".start() is executed.
@@ -76,6 +83,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerState(new AckSendBehaviour(this, list_agentNames), ackSend);
 		fsm.registerState(new ShareMapBehaviour(this, list_agentNames), shareMap);
 		fsm.registerState(new StopBehaviour(this), stop);
+		fsm.registerState(new RandomWalkBehaviour(this), rdmmove);
 
 		/************************************************
 		 * 
@@ -91,6 +99,8 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(ping, shareMap, 1);
 		fsm.registerDefaultTransition(ackSend, shareMap);
 		fsm.registerDefaultTransition(shareMap, move);
+		fsm.registerDefaultTransition(stop, rdmmove);
+		fsm.registerDefaultTransition(rdmmove, rdmmove);
 
 		/************************************************
 		 * 
@@ -119,4 +129,17 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		this.myMap = map;
 	}
 
+	public void addIteration(){
+		iteration++;
+	}
+
+	public Integer getIteration() {
+        return iteration;
+    }
+
+	public ArrayList<String> getNodesToShare(String agentName){
+		return this.nodesToShare.get(agentName);
+	}
+
+	
 }

@@ -1,0 +1,7 @@
+--------------------- VAGUES D ITERATIONS 1 MAP CARRE ---------------------
+Tim@Ithaq : 200
+Elsa@Ithaq : 226
+
+--------------------- VAGUES D ITERATIONS 1 MAP X ---------------------
+Tim@Ithaq : 373
+Elsa@Ithaq : 240

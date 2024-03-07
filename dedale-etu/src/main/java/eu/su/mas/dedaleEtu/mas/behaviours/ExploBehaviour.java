@@ -56,11 +56,11 @@ public class ExploBehaviour extends SimpleBehaviour {
  */
 	public ExploBehaviour(final AbstractDedaleAgent myagent) {
 		super(myagent);
-		// this.list_agentNames=agentNames;
 	}
 
 	@Override
 	public void action() {
+		((ExploreFSMAgent)this.myAgent).addIteration();
 		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap();
 		exitValue = 0;
 		myNextNode=null;
@@ -83,7 +83,6 @@ public class ExploBehaviour extends SimpleBehaviour {
 		}
 
 		else{
-			System.out.println(myAgent.getName()+" JE BOUGE cmpt = "+cmpt);
 			//0) Retrieve the current position
 			Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 			if (myPosition!=null){
@@ -117,13 +116,13 @@ public class ExploBehaviour extends SimpleBehaviour {
 				//3) while openNodes is not empty, continues.
 				if (!this.myMap.hasOpenNode()){
 					//Explo finished
-					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
+					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done !");
 					exitValue = 3;
 				}else{
 					//4) select next move.
 					if (myNextNode==null){
 						myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
-						System.out.println(this.myAgent.getName()+" My next node was null and now is "+myNextNode+" and my position is "+myPosition);
+						System.out.println("I am "+this.myAgent.getName()+", my next node was null and now is "+myNextNode+", my position is "+myPosition);
 					}
 					
 
@@ -133,18 +132,17 @@ public class ExploBehaviour extends SimpleBehaviour {
 					ACLMessage infoRecept=this.myAgent.receive(msgTemplate);
 
 					if(infoRecept!=null){
-						System.out.println(this.myAgent.getName()+" J'AI RECU UNE MAP");
+						System.out.println("I am "+this.myAgent.getName()+" and I received a map from "+infoRecept.getSender().getName());
 						AgentInfo msginfo = null;
 						try {
 							msginfo = (AgentInfo)infoRecept.getContentObject();
 						} catch (UnreadableException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						
 						SerializableSimpleGraph<String, MapAttribute> receivedMapSender = msginfo.getMap();
 						String agentIdSender = msginfo.getAgentId();
-						String nextPositionSender = msginfo.getNextPosition(); //WHAT IF WE RECEIVE MULTIPLE? HOW DO WE STOCK IT?
+						String nextPositionSender = msginfo.getNextPosition();
 						this.myMap.mergeMap(receivedMapSender);
 
 						if (this.myNextNode == nextPositionSender){ // NOEUD PRIORITAIRE
@@ -155,18 +153,16 @@ public class ExploBehaviour extends SimpleBehaviour {
 							}
 						}
 					}
-					System.out.println(this.myAgent.getName()+" My next node is "+myNextNode+" and my position is "+myPosition);
+					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
 					cmpt++;
 					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 
 					while(!moved){
-						System.out.println("JE CHERCHE UN AUTRE NOEUD");
-						System.out.println(this.myAgent.getLocalName());
+						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node for any reason");
 						for(Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
 							if(!Objects.equals(obs.getLeft().getLocationId(), myNextNode)){
 								if(!Objects.equals(obs.getLeft(), myPosition)){
 									myNextNode = obs.getLeft().getLocationId();
-									System.out.println(myNextNode+this.myAgent.getLocalName());
 									break;
 								}
 							}
@@ -177,13 +173,10 @@ public class ExploBehaviour extends SimpleBehaviour {
 			}
 		}
 		((ExploreFSMAgent)this.myAgent).setMap(this.myMap);
-		System.out.println(exitValue+" = EXITVALUE");
-		System.out.println("EXITVALUE meaning : 0 = move to move, 1 = move to ping, 2 = move to ackSend");
 	}
 
 	@Override
 	public int onEnd(){
-		System.out.println(exitValue+" = EXITVALUE dans la methode onEnd");
 		return exitValue;
 	}
 

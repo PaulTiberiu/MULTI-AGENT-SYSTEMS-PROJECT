@@ -302,6 +302,50 @@ public class MapRepresentation implements Serializable {
 		//System.out.println("Merge done");
 	}
 
+	public MapRepresentation getPartialMap(ArrayList<String> nodesToShare) {
+		MapRepresentation partialMap = new MapRepresentation();
+		if (nodesToShare == null) {
+			return partialMap;
+		}
+		ArrayList<String> nodesToBeSent = new ArrayList<String>();
+		// Adding the nodes
+		for (String nodeId: nodesToShare) {
+			Node oldNode = this.g.getNode(nodeId);
+			Node newNode = partialMap.g.addNode(nodeId);
+			nodesToBeSent.add(nodeId);
+			for (Object attribute : oldNode.attributeKeys().toArray()) {
+				newNode.setAttribute((String) attribute, oldNode.getAttribute((String) attribute));
+			}
+		}
+		// Adding the edges
+		for (String nodeId: nodesToShare) {
+			Node n = this.g.getNode(nodeId);
+			for (Object edge: n.edges().toArray()) {
+				String node0 = ((Edge) edge).getNode0().getId();
+				String node1 = ((Edge) edge).getNode1().getId();
+				if (!nodesToBeSent.contains(node0)) {
+					Node oldNode = this.g.getNode(node0);
+					Node newNode = partialMap.g.addNode(node0);
+					nodesToBeSent.add(node0);
+					for (Object attribute : oldNode.attributeKeys().toArray()) {
+						newNode.setAttribute((String) attribute, oldNode.getAttribute((String) attribute));
+					}
+				}
+				if (!nodesToBeSent.contains(node1)) {
+					Node oldNode = this.g.getNode(node1);
+					Node newNode = partialMap.g.addNode(node1);
+					nodesToBeSent.add(node1);
+					for (Object attribute : oldNode.attributeKeys().toArray()) {
+						newNode.setAttribute((String) attribute, oldNode.getAttribute((String) attribute));
+					}
+				}
+				partialMap.addEdge(node0, node1);
+			}
+		}
+		return partialMap;
+	}
+
+
 	/**
 	 * 
 	 * @return true if there exist at least one openNode on the graph 

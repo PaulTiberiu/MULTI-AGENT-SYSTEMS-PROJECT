@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.io.IOException;
 import java.util.List;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -43,8 +44,9 @@ public class PingBehaviour extends SimpleBehaviour {
 
 	@Override
 	public void action() {
+		((ExploreFSMAgent)this.myAgent).addIteration();
 		exitValue = 0;
-		System.out.println(myAgent.getName()+" JE PING");
+		System.out.println("I am "+myAgent.getName()+" and I am sending a PING");
         ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);
         ping.setProtocol("PING");
         ping.setSender(this.myAgent.getAID());
@@ -65,7 +67,7 @@ public class PingBehaviour extends SimpleBehaviour {
 		ACLMessage ackRecept=this.myAgent.receive(msgTemplate);
 
 		if(ackRecept!=null){
-			System.out.println(myAgent.getName()+" J'AI RECU UN ACK");
+			System.out.println("I am "+myAgent.getName()+" and I received an ACK");
 			exitValue = 1;
 		}
 	}
