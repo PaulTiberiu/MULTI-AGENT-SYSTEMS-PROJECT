@@ -10,6 +10,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.ExploBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.StopBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 
 import jade.core.behaviours.Behaviour;
@@ -30,6 +31,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final String ping = "ping";
 	private static final String ackSend = "ackSend";
 	private static final String shareMap = "shareMap";
+	private static final String stop = "stop";
 
 	/**
 	 * This method is automatically called when "agent".start() is executed.
@@ -69,10 +71,11 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		 * 
 		 ************************************************/
 
-		fsm.registerFirstState(new ExploBehaviour(this, myMap), move);
+		fsm.registerFirstState(new ExploBehaviour(this), move);
 		fsm.registerState(new PingBehaviour(this, list_agentNames), ping);
 		fsm.registerState(new AckSendBehaviour(this, list_agentNames), ackSend);
-		fsm.registerState(new ShareMapBehaviour(this, myMap, list_agentNames), shareMap);
+		fsm.registerState(new ShareMapBehaviour(this, list_agentNames), shareMap);
+		fsm.registerState(new StopBehaviour(this), stop);
 
 		/************************************************
 		 * 
@@ -83,6 +86,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(move, move, 0);
 		fsm.registerTransition(move, ping, 1);
 		fsm.registerTransition(move, ackSend, 2);
+		fsm.registerTransition(move, stop, 3);
 		fsm.registerTransition(ping, move, 0);
 		fsm.registerTransition(ping, shareMap, 1);
 		fsm.registerDefaultTransition(ackSend, shareMap);
@@ -105,6 +109,14 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		
 		System.out.println("the  agent "+this.getLocalName()+ " is started");
 
+	}
+
+	public MapRepresentation getMap() {
+		return this.myMap;
+	}
+
+	public void setMap(MapRepresentation map) {
+		this.myMap = map;
 	}
 
 }

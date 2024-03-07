@@ -12,6 +12,7 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.AgentInfo;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.SimpleBehaviour;
@@ -55,18 +56,18 @@ public class ExploBehaviour extends SimpleBehaviour {
  * @param myMap known map of the world the agent is living in
  * @param agentNames name of the agents to share the map with
  */
-	public ExploBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
+	public ExploBehaviour(final AbstractDedaleAgent myagent) {
 		super(myagent);
-		this.myMap=myMap;
 		// this.list_agentNames=agentNames;
 	}
 
 	@Override
 	public void action() {
+		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap();
 		exitValue = 0;
-		System.out.println("JE BOUGE cmpt = "+cmpt);
+		myNextNode=null;
 		if(this.myMap==null) {
-			this.myMap= new MapRepresentation();
+			this.myMap = new MapRepresentation();
 		}
 
 		MessageTemplate msgTemplate=MessageTemplate.and(
@@ -76,17 +77,19 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 		if(pingRecept!=null){
 			exitValue = 2;
+			finished=true;
 		}
 
 		else if(cmpt >= 3){
 			exitValue = 1;
 			cmpt = 0;
+			finished=true;
 		}
 
 		else{
+			System.out.println(myAgent.getName()+" JE BOUGE cmpt = "+cmpt);
 			//0) Retrieve the current position
 			Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
-
 			if (myPosition!=null){
 				//List of observable from the agent's current position
 				List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
@@ -120,10 +123,12 @@ public class ExploBehaviour extends SimpleBehaviour {
 					//Explo finished
 					finished=true;
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done, behaviour removed.");
+					exitValue = 3;
 				}else{
 					//4) select next move.
 					if (myNextNode==null){
 						myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
+						System.out.println(this.myAgent.getName()+" My next node was null and now is "+myNextNode+" and my position is "+myPosition);
 					}
 					
 
@@ -133,7 +138,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 					ACLMessage infoRecept=this.myAgent.receive(msgTemplate);
 
 					if(infoRecept!=null){
-						System.out.println("J'AI RECU UNE MAP");
+						System.out.println(this.myAgent.getName()+" J'AI RECU UNE MAP");
 						AgentInfo msginfo = null;
 						try {
 							msginfo = (AgentInfo)infoRecept.getContentObject();
@@ -155,7 +160,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 							}
 						}
 					}
-
+					System.out.println(this.myAgent.getName()+" My next node is "+myNextNode+" and my position is "+myPosition);
 					cmpt++;
 					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 
@@ -174,6 +179,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 				}
 			}
 		}
+		((ExploreFSMAgent)this.myAgent).setMap(this.myMap);
 		System.out.println(exitValue+" = EXITVALUE");
 	}
 
@@ -184,7 +190,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 	@Override
 	public boolean done() {
-		return finished;
+		return true;
 	}
 
 }

@@ -45,7 +45,7 @@ public class PingBehaviour extends SimpleBehaviour {
 	@Override
 	public void action() {
 		exitValue = 0;
-		System.out.println("JE PING");
+		System.out.println(myAgent.getName()+" JE PING");
         ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);
         ping.setProtocol("PING");
         ping.setSender(this.myAgent.getAID());
@@ -59,17 +59,17 @@ public class PingBehaviour extends SimpleBehaviour {
         }
         ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
-		// myAgent.doWait(10);
+		// myAgent.doWait(10);											ICI ATTENTION!!!
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("ACK"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage ackRecept=this.myAgent.receive(msgTemplate);
 
 		if(ackRecept!=null){
-			System.out.println("J'AI RECU UN ACK");
+			System.out.println(myAgent.getName()+" J'AI RECU UN ACK");
 			exitValue = 1;
 		}
-
+		finished = true;
 	}
 
 	public int onEnd(){
@@ -78,7 +78,7 @@ public class PingBehaviour extends SimpleBehaviour {
 
     @Override
 	public boolean done() {
-		return finished;
+		return true;
 	}
 
 }
