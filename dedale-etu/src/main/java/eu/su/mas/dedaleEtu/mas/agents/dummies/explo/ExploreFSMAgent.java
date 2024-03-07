@@ -12,6 +12,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.ExploBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.SharePartialMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.StopBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 
@@ -81,7 +82,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerFirstState(new ExploBehaviour(this), move);
 		fsm.registerState(new PingBehaviour(this, list_agentNames), ping);
 		fsm.registerState(new AckSendBehaviour(this, list_agentNames), ackSend);
-		fsm.registerState(new ShareMapBehaviour(this, list_agentNames), shareMap);
+		fsm.registerState(new SharePartialMapBehaviour(this, list_agentNames), shareMap);
 		fsm.registerState(new StopBehaviour(this), stop);
 		fsm.registerState(new RandomWalkBehaviour(this), rdmmove);
 
@@ -138,7 +139,21 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
     }
 
 	public ArrayList<String> getNodesToShare(String agentName){
+		if (this.nodesToShare == null) {
+			this.nodesToShare = new HashMap<String, ArrayList<String>>();
+		}
 		return this.nodesToShare.get(agentName);
+	}
+
+	public void addNodesToShare(String agentName, ArrayList<String> nodes){
+		ArrayList<String> exist_nodes = getNodesToShare(agentName);
+		if (exist_nodes == null) {
+			nodesToShare.put(agentName, nodes);
+		}
+		else if(!exist_nodes.contains(nodes.get(0))){
+			exist_nodes.addAll(nodes);
+		}
+		
 	}
 
 	

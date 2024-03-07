@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.ArrayList;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
@@ -19,6 +20,7 @@ import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+
 
 /**
  * <pre>
@@ -100,6 +102,9 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 				//1) remove the current node from openlist and add it to closedNodes.
 				this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
+				ArrayList<String>list = new ArrayList<String>();
+				list.add(myPosition.getLocationId());
+				((ExploreFSMAgent) this.myAgent).addNodesToShare(this.myAgent.getLocalName(), list);
 
 				//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 				Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();

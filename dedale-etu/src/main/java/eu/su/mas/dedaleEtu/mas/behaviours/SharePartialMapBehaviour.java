@@ -59,10 +59,10 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 
 	@Override
  	public void action() {
+		System.out.println("I am "+myAgent.getName()+" and I am sharing my map");
 		((ExploreFSMAgent)this.myAgent).addIteration();
 		myNextNode = null;
 		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap();
-		System.out.println(myAgent.getName()+" JE SHARE MA MAP");
 		// ENVOIE DES INFOS : NOM, PROCHAIN NOEUD, CARTE APRES AVOIR RECU UN ACK
 
 		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
@@ -75,20 +75,11 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 		Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
 		while(iter.hasNext()){
 			Location accessibleNode=iter.next().getLeft();
-
-			System.out.println(accessibleNode+" "+myAgent.getLocalName());
-
-			boolean isNewNode=this.myMap.addNewNode(accessibleNode.getLocationId());
-			System.out.println(isNewNode);
-
-			//the node may exist, but not necessarily the edge
 			if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
 				this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
-				// if (isNewNode) myNextNode=accessibleNode.getLocationId();
 			}
 		}
-		if(myNextNode==null){
-			System.out.println(myNextNode);
+		if(myNextNode==null && this.myMap.hasOpenNode()){
 			myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
 		}
 		
