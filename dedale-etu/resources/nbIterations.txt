@@ -3,3 +3,7 @@ Tim@Ithaq : 200
 Elsa@Ithaq : 226
 
 --------------------- VAGUES D ITERATIONS 1 MAP X ---------------------
+Tim@Ithaq : 244
+Elsa@Ithaq : 174
+Tim@Ithaq : 178
+Elsa@Ithaq : 217

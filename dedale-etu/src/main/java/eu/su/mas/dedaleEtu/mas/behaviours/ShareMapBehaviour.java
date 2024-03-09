@@ -34,6 +34,7 @@ public class ShareMapBehaviour extends SimpleBehaviour {
 	private MapRepresentation myMap;
 	private List<String> receivers;
 	//private Integer cmpt = 0;
+	boolean isFullMap;
 	private String myNextNode;
 	/**
 	 * The agent periodically share its map.
@@ -47,7 +48,7 @@ public class ShareMapBehaviour extends SimpleBehaviour {
 	 */
 	public ShareMapBehaviour(Agent a, List<String> receivers) {
 		super(a);
-		this.myMap = ((ExploreFSMAgent) a).getMap();
+		this.myMap = ((ExploreFSMAgent) a).getMap(true);
 		this.receivers = receivers;
 	}
 
@@ -61,7 +62,7 @@ public class ShareMapBehaviour extends SimpleBehaviour {
  	public void action() {
 		((ExploreFSMAgent)this.myAgent).addIteration();
 		myNextNode = null;
-		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap();
+		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
 		System.out.println("I am "+myAgent.getName()+" and I am sharing my map");
 		// ENVOIE DES INFOS : NOM, PROCHAIN NOEUD, CARTE APRES AVOIR RECU UN ACK
 

@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.Edge;
@@ -61,17 +62,18 @@ public class MapRepresentation implements Serializable {
 	private SerializableSimpleGraph<String, MapAttribute> sg;//used as a temporary dataStructure during migration
 
 
-	public MapRepresentation() {
+	public MapRepresentation(boolean isFullMap) {
 		//System.setProperty("org.graphstream.ui.renderer","org.graphstream.ui.j2dviewer.J2DGraphRenderer");
 		System.setProperty("org.graphstream.ui", "javafx");
 		this.g= new SingleGraph("My world vision");
 		this.g.setAttribute("ui.stylesheet",nodeStyle);
 
-		Platform.runLater(() -> {
-			openGui();
-		});
+		if(isFullMap){
+			Platform.runLater(() -> {
+				openGui();
+			});
+		}
 		//this.viewer = this.g.display();
-
 		this.nbEdges=0;
 	}
 
@@ -303,7 +305,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public MapRepresentation getPartialMap(ArrayList<String> nodesToShare) {
-		MapRepresentation partialMap = new MapRepresentation();
+		MapRepresentation partialMap = new MapRepresentation(false);
 		if (nodesToShare == null) {
 			return partialMap;
 		}
@@ -342,9 +344,28 @@ public class MapRepresentation implements Serializable {
 				partialMap.addEdge(node0, node1);
 			}
 		}
+		//System.out.print("Partial map: " + partialMap.g.getNodeCount() + " nodes, ");
+		//System.out.println();
+
+
+		// Assuming Node is the type of objects in the stream
+		Stream<Node> nodeStream = partialMap.g.nodes();
+
+		// Convert the stream to a list
+		List<Node> nodeList = nodeStream.collect(Collectors.toList());
+
+		// Print the nodes
+		System.out.print("Partial map: " + partialMap.g.getNodeCount() + " nodes, ");
+		for (Node node : nodeList) {
+			System.out.print(node.toString() + " ");
+		}
+		System.out.println();
+
+		//System.out.println("Partial map: "+partialMap.g.getNodeCount()+" nodes, "+partialMap.g.nodes());
 		return partialMap;
 	}
 
+	
 
 	/**
 	 * 

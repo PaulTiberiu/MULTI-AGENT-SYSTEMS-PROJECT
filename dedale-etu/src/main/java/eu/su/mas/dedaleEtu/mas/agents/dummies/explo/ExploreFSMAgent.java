@@ -11,11 +11,10 @@ import eu.su.mas.dedaleEtu.mas.behaviours.AckSendBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
-import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SharePartialMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.StopBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-
+import eu.su.mas.dedaleEtu.mas.knowledge.NodeSharingManager;
 import jade.core.behaviours.Behaviour;
 
 
@@ -24,9 +23,9 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = -7969469610241668140L;
 	private MapRepresentation myMap;
 	private Integer iteration = 0;
-
 	private HashMap<String, ArrayList<String>> nodesToShare; // key: agent name, value: list of IDs of the nodes to be shared next time we meet this agent
-
+	private HashMap<String, ArrayList<String>> nodesShared;
+	private NodeSharingManager myNodeSharingManager = new NodeSharingManager(this.getLocalName(), null, null);
 	
 	/************************************************
 	* 
@@ -54,7 +53,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		
 		//get the parameters added to the agent at creation (if any)
 		final Object[] args = getArguments();
-		
+
 		List<String> list_agentNames=new ArrayList<String>();
 		
 		if(args.length==0){
@@ -122,9 +121,15 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 
 	}
 
-	public MapRepresentation getMap() {
-		return this.myMap;
-	}
+    public MapRepresentation getMap(boolean isFullMap) {
+        if (isFullMap) {
+            return this.myMap;
+        } else {
+            // Return the partial map
+            ArrayList<String> nodesToShare = getNodesToShare(getLocalName());
+            return this.myMap.getPartialMap(nodesToShare);
+        }
+    }
 
 	public void setMap(MapRepresentation map) {
 		this.myMap = map;
@@ -139,22 +144,60 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
     }
 
 	public ArrayList<String> getNodesToShare(String agentName){
+
 		if (this.nodesToShare == null) {
 			this.nodesToShare = new HashMap<String, ArrayList<String>>();
 		}
 		return this.nodesToShare.get(agentName);
 	}
 
-	public void addNodesToShare(String agentName, ArrayList<String> nodes){
-		ArrayList<String> exist_nodes = getNodesToShare(agentName);
-		if (exist_nodes == null) {
-			nodesToShare.put(agentName, nodes);
+	public ArrayList<String> getSharedNodes(String agentName){
+
+		if (this.nodesShared == null) {
+			this.nodesShared = new HashMap<String, ArrayList<String>>();
 		}
-		else if(!exist_nodes.contains(nodes.get(0))){
-			exist_nodes.addAll(nodes);
-		}
-		
+		return this.nodesShared.get(agentName);
 	}
 
-	
+	// Method to reset the nodes to be shared with a specific agent
+	public void resetNodesToShare(String agentName){
+		if (this.nodesToShare != null) {
+			this.nodesToShare.remove(agentName);
+			//this.nodesShared.add();
+		}
+	}
+
+	// public void addNodesToShare(String agentName, ArrayList<String> nodes){
+	// 	ArrayList<String> exist_nodes = getNodesToShare(agentName);
+	// 	ArrayList<String> shared_nodes = getSharedNodes(agentName);		 //&& shared_nodes ==  nn && shared_nodes == null		if (exist_nodes == null) {
+			
+	// 	else if(!exist_nodes.contains(nodes.get(0)) && shared_nodes == null){	// ERREUR IL FAUT VERIFIER SI SHARED NODES EST VIDE
+			
+    //     }nodesToShare.put(agentName, nodes);
+	// 	}
+	// 	else if(!exist_nodes.contains(nodes.get(0)) && !shared_nodes.get(agentName).contains(nodes.get(0))){
+	// 		exist_nodes.addAll(nodes);
+	// 	}
+	// }
+
+    // Method to merge nodes to be shared with a specific agent
+
+	// SEE IF IT IS USEFUL
+    public void mergeNodesToShare(String agentName, ArrayList<String> nodes){
+        if (this.nodesToShare == null) {
+            this.nodesToShare = new HashMap<>();
+        }
+        ArrayList<String> existingNodes = getNodesToShare(agentName);
+        if (existingNodes == null) {
+            this.nodesToShare.put(agentName, nodes);
+        } else {
+            existingNodes.addAll(nodes);
+            this.nodesToShare.put(agentName, existingNodes);
+        }
+    }
+
+	public void resetPartialMap(String agentName){
+		this.nodesToShare = null;
+	}
+
 }

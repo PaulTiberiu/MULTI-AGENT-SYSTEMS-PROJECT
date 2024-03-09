@@ -49,6 +49,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 	// private List<String> list_agentNames;
 	private int exitValue = 0;
 	private int cmpt = 0;
+	private boolean isFullMap = true;
 
 /**
  * 
@@ -63,11 +64,11 @@ public class ExploBehaviour extends SimpleBehaviour {
 	@Override
 	public void action() {
 		((ExploreFSMAgent)this.myAgent).addIteration();
-		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap();
+		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
 		exitValue = 0;
 		myNextNode=null;
 		if(this.myMap==null) {
-			this.myMap = new MapRepresentation();
+			this.myMap = new MapRepresentation(isFullMap);
 		}
 
 		MessageTemplate msgTemplate=MessageTemplate.and(

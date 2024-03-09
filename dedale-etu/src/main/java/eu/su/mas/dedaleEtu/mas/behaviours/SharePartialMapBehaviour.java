@@ -48,7 +48,7 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 	 */
 	public SharePartialMapBehaviour(Agent a, List<String> receivers) {
 		super(a);
-		this.myMap = ((ExploreFSMAgent) a).getMap();
+		this.myMap = ((ExploreFSMAgent) a).getMap(true);
 		this.receivers = receivers;
 	}
 
@@ -62,7 +62,7 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 		System.out.println("I am "+myAgent.getName()+" and I am sharing my map");
 		((ExploreFSMAgent)this.myAgent).addIteration();
 		myNextNode = null;
-		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap();
+		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
 		// ENVOIE DES INFOS : NOM, PROCHAIN NOEUD, CARTE APRES AVOIR RECU UN ACK
 
 		Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
@@ -84,8 +84,14 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 		}
 		
         ArrayList<String> nodesToShare = ((ExploreFSMAgent)this.myAgent).getNodesToShare(((AbstractDedaleAgent)this.myAgent).getLocalName());
-		MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap().getPartialMap(nodesToShare);
+		MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap(false).getPartialMap(nodesToShare);
+		
 		SerializableSimpleGraph<String, MapAttribute> sg = partialMap.getSerializableGraph();
+		((ExploreFSMAgent)this.myAgent).resetPartialMap(this.myAgent.getLocalName());
+
+		//ajoute
+		((ExploreFSMAgent) this.myAgent).resetNodesToShare(this.myAgent.getLocalName());
+		//fin ajoute
 
         AgentInfo agentInfo = new AgentInfo(((AbstractDedaleAgent)this.myAgent).getLocalName(),myNextNode,sg);
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
