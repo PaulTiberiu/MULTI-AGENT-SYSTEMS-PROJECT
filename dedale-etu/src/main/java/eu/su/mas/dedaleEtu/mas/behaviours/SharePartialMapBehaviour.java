@@ -33,7 +33,7 @@ import eu.su.mas.dedaleEtu.mas.knowledge.AgentInfo;
 public class SharePartialMapBehaviour extends SimpleBehaviour {
 	
 	private MapRepresentation myMap;
-	private List<String> receivers;
+	//private List<String> receivers;
 	//private Integer cmpt = 0;
 	private String myNextNode;
 	/**
@@ -49,7 +49,7 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 	public SharePartialMapBehaviour(Agent a, List<String> receivers) {
 		super(a);
 		this.myMap = ((ExploreFSMAgent) a).getMap(true);
-		this.receivers = receivers;
+		//this.receivers = receivers;
 	}
 
 	/**
@@ -83,24 +83,23 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 			myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
 		}
 		
-        ArrayList<String> nodesToShare = ((ExploreFSMAgent)this.myAgent).getNodesToShare(((AbstractDedaleAgent)this.myAgent).getLocalName());
-		MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap(false).getPartialMap(nodesToShare);
+		String receiver = ((ExploreFSMAgent) this.myAgent).getACKsender();
+
+        ArrayList<String> nodesToShare = ((ExploreFSMAgent)this.myAgent).getNodesToShare(receiver);
+		MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap(true).getPartialMap(nodesToShare);
 		
 		SerializableSimpleGraph<String, MapAttribute> sg = partialMap.getSerializableGraph();
-		((ExploreFSMAgent)this.myAgent).resetPartialMap(this.myAgent.getLocalName());
 
-		//ajoute
-		((ExploreFSMAgent) this.myAgent).resetNodesToShare(this.myAgent.getLocalName());
-		//fin ajoute
+		((ExploreFSMAgent)this.myAgent).addNodesShared(receiver, nodesToShare);
+		((ExploreFSMAgent) this.myAgent).resetNodesToShare(receiver);
 
         AgentInfo agentInfo = new AgentInfo(((AbstractDedaleAgent)this.myAgent).getLocalName(),myNextNode,sg);
 		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 		msg.setProtocol("SHARE-TOPO-POS-ID");
 		msg.setSender(this.myAgent.getAID());
 
-		for (String agentName : receivers) {
-			msg.addReceiver(new AID(agentName,AID.ISLOCALNAME));
-		}
+		
+		msg.addReceiver(new AID(receiver,AID.ISLOCALNAME));
 		try {					
 			msg.setContentObject(agentInfo);
 		} catch (IOException e) {

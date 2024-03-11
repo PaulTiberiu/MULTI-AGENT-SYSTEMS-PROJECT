@@ -3,8 +3,10 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.ArrayList;
 
+import dataStructures.serializableGraph.SerializableNode;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
@@ -20,6 +22,7 @@ import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+
 
 
 /**
@@ -77,6 +80,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 		ACLMessage pingRecept=this.myAgent.receive(msgTemplate);
 
 		if(pingRecept!=null){
+			((ExploreFSMAgent)this.myAgent).setACKsender(pingRecept.getSender().getLocalName());
 			exitValue = 2;
 		}
 
@@ -105,7 +109,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 				this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 				ArrayList<String>list = new ArrayList<String>();
 				list.add(myPosition.getLocationId());
-				((ExploreFSMAgent) this.myAgent).addNodesToShare(this.myAgent.getLocalName(), list);
+				((ExploreFSMAgent) this.myAgent).addNodesToShare(list, null);
 
 				//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 				Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
@@ -138,7 +142,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 					ACLMessage infoRecept=this.myAgent.receive(msgTemplate);
 
 					if(infoRecept!=null){
-						System.out.println("I am "+this.myAgent.getName()+" and I received a map from "+infoRecept.getSender().getName());
+						System.out.println("I am "+this.myAgent.getName()+" and I received a partial map from "+infoRecept.getSender().getName());
 						AgentInfo msginfo = null;
 						try {
 							msginfo = (AgentInfo)infoRecept.getContentObject();
@@ -150,6 +154,16 @@ public class ExploBehaviour extends SimpleBehaviour {
 						String agentIdSender = msginfo.getAgentId();
 						String nextPositionSender = msginfo.getNextPosition();
 						this.myMap.mergeMap(receivedMapSender);
+
+						Set<SerializableNode<String, MapAttribute>> all_nodes = msginfo.getMap().getAllNodes();
+
+						ArrayList<String> nodeList = new ArrayList<>();
+						for (SerializableNode<String, MapAttribute> node : all_nodes) {
+								nodeList.add(node.getNodeId());
+						}
+
+						String except = infoRecept.getSender().getLocalName();
+						((ExploreFSMAgent) this.myAgent).addNodesToShare(nodeList, except);
 
 						if (this.myNextNode == nextPositionSender){ // NOEUD PRIORITAIRE
 							if (Integer.parseInt(agentIdSender) < Integer.parseInt(this.myAgent.getLocalName())){

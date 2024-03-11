@@ -305,6 +305,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public MapRepresentation getPartialMap(ArrayList<String> nodesToShare) {
+		System.out.println("NodesToShare = "+nodesToShare);
 		MapRepresentation partialMap = new MapRepresentation(false);
 		if (nodesToShare == null) {
 			return partialMap;
@@ -349,17 +350,17 @@ public class MapRepresentation implements Serializable {
 
 
 		// Assuming Node is the type of objects in the stream
-		Stream<Node> nodeStream = partialMap.g.nodes();
+		//Stream<Node> nodeStream = partialMap.g.nodes();
 
 		// Convert the stream to a list
-		List<Node> nodeList = nodeStream.collect(Collectors.toList());
+		//List<Node> nodeList = nodeStream.collect(Collectors.toList());
 
 		// Print the nodes
-		System.out.print("Partial map: " + partialMap.g.getNodeCount() + " nodes, ");
-		for (Node node : nodeList) {
-			System.out.print(node.toString() + " ");
-		}
-		System.out.println();
+		// System.out.print("Partial map: " + partialMap.g.getNodeCount() + " nodes, ");
+		// for (Node node : nodeList) {
+		// 	System.out.print(node.toString() + " ");
+		// }
+		// System.out.println();
 
 		//System.out.println("Partial map: "+partialMap.g.getNodeCount()+" nodes, "+partialMap.g.nodes());
 		return partialMap;

@@ -60,7 +60,6 @@ public class PingBehaviour extends SimpleBehaviour {
         }
         ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
-		// myAgent.doWait(10);											ICI ATTENTION!!!
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("ACK"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -69,6 +68,7 @@ public class PingBehaviour extends SimpleBehaviour {
 		if(ackRecept!=null){
 			System.out.println("I am "+myAgent.getName()+" and I received an ACK");
 			exitValue = 1;
+			((ExploreFSMAgent)this.myAgent).setACKsender(ackRecept.getSender().getLocalName());
 		}
 	}
 

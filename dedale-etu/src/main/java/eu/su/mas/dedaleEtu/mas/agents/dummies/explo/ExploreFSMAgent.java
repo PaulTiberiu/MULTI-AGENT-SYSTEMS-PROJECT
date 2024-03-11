@@ -14,7 +14,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SharePartialMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.StopBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.NodeSharingManager;
+// import eu.su.mas.dedaleEtu.mas.knowledge.NodeSharingManager;
 import jade.core.behaviours.Behaviour;
 
 
@@ -23,9 +23,11 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = -7969469610241668140L;
 	private MapRepresentation myMap;
 	private Integer iteration = 0;
+	private List<String> list_agentNames;
+	private String ACKsender;
 	private HashMap<String, ArrayList<String>> nodesToShare; // key: agent name, value: list of IDs of the nodes to be shared next time we meet this agent
 	private HashMap<String, ArrayList<String>> nodesShared;
-	private NodeSharingManager myNodeSharingManager = new NodeSharingManager(this.getLocalName(), null, null);
+	// private NodeSharingManager myNodeSharingManager = new NodeSharingManager(this.getLocalName(), null, null);
 	
 	/************************************************
 	* 
@@ -38,7 +40,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final String ackSend = "ackSend";
 	private static final String shareMap = "shareMap";
 	private static final String stop = "stop";
-	private static final String rdmmove = "rdmmove";
+	// private static final String rdmmove = "rdmmove";
 
 	/**
 	 * This method is automatically called when "agent".start() is executed.
@@ -54,7 +56,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		//get the parameters added to the agent at creation (if any)
 		final Object[] args = getArguments();
 
-		List<String> list_agentNames=new ArrayList<String>();
+		this.list_agentNames=new ArrayList<String>();
 		
 		if(args.length==0){
 			System.err.println("Error while creating the agent, names of agent to contact expected");
@@ -83,7 +85,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerState(new AckSendBehaviour(this, list_agentNames), ackSend);
 		fsm.registerState(new SharePartialMapBehaviour(this, list_agentNames), shareMap);
 		fsm.registerState(new StopBehaviour(this), stop);
-		fsm.registerState(new RandomWalkBehaviour(this), rdmmove);
+		// fsm.registerState(new RandomWalkBehaviour(this), rdmmove);
 
 		/************************************************
 		 * 
@@ -99,8 +101,8 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(ping, shareMap, 1);
 		fsm.registerDefaultTransition(ackSend, shareMap);
 		fsm.registerDefaultTransition(shareMap, move);
-		fsm.registerDefaultTransition(stop, rdmmove);
-		fsm.registerDefaultTransition(rdmmove, rdmmove);
+		// fsm.registerDefaultTransition(stop, rdmmove);
+		// fsm.registerDefaultTransition(rdmmove, rdmmove);
 
 		/************************************************
 		 * 
@@ -159,26 +161,74 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		return this.nodesShared.get(agentName);
 	}
 
+	public void addNodesToShare(ArrayList<String> nodes, String agentExcept){
+		List<String> agentNames_except = new ArrayList<String>(list_agentNames);
+
+		if (agentExcept != null){
+			agentNames_except.remove(agentExcept);
+		}
+		
+		for (String agentName : agentNames_except) {
+			ArrayList<String> toshare_nodes = getNodesToShare(agentName);
+			ArrayList<String> shared_nodes = getSharedNodes(agentName);
+	
+			ArrayList<String> existingNodes = nodesToShare.getOrDefault(agentName, new ArrayList<>());
+	
+			for (String n : nodes) {
+				ArrayList<String> node = new ArrayList<String>();
+				node.add(n);
+
+				if (toshare_nodes != null && !toshare_nodes.contains(n) && shared_nodes == null) {
+					existingNodes.addAll(node);
+				} else if (toshare_nodes != null && !toshare_nodes.contains(n) && !shared_nodes.contains(n)) {
+					existingNodes.addAll(node);
+				} else if (toshare_nodes == null) {
+					existingNodes.addAll(node);
+				}
+			}
+			nodesToShare.put(agentName, existingNodes);
+		}
+	}
+	
+
+
+	public void addNodesShared(String agentName, ArrayList<String> nodes){
+		if (nodes == null){
+			return;
+		}
+
+		ArrayList<String> shared_nodes = getSharedNodes(agentName);
+
+		if (shared_nodes == null) {
+			nodesShared.put(agentName, nodes);
+			return;
+		}
+
+		for (int i = 0; i < nodes.size(); i++) {
+			if (!shared_nodes.contains(nodes.get(i))){
+				nodesShared.put(agentName, nodes);
+			}
+		}
+	}
+
 	// Method to reset the nodes to be shared with a specific agent
 	public void resetNodesToShare(String agentName){
 		if (this.nodesToShare != null) {
 			this.nodesToShare.remove(agentName);
-			//this.nodesShared.add();
 		}
 	}
 
-	// public void addNodesToShare(String agentName, ArrayList<String> nodes){
-	// 	ArrayList<String> exist_nodes = getNodesToShare(agentName);
-	// 	ArrayList<String> shared_nodes = getSharedNodes(agentName);		 //&& shared_nodes ==  nn && shared_nodes == null		if (exist_nodes == null) {
-			
-	// 	else if(!exist_nodes.contains(nodes.get(0)) && shared_nodes == null){	// ERREUR IL FAUT VERIFIER SI SHARED NODES EST VIDE
-			
-    //     }nodesToShare.put(agentName, nodes);
-	// 	}
-	// 	else if(!exist_nodes.contains(nodes.get(0)) && !shared_nodes.get(agentName).contains(nodes.get(0))){
-	// 		exist_nodes.addAll(nodes);
-	// 	}
-	// }
+
+	// Getter for the ack senders
+	public String getACKsender(){
+		return this.ACKsender;
+	}
+
+	// Setter for the ack senders
+	public void setACKsender(String agentName){
+		this.ACKsender = agentName;
+	}
+
 
     // Method to merge nodes to be shared with a specific agent
 
@@ -195,9 +245,5 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
             this.nodesToShare.put(agentName, existingNodes);
         }
     }
-
-	public void resetPartialMap(String agentName){
-		this.nodesToShare = null;
-	}
 
 }

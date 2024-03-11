@@ -20,5 +20,27 @@
   "detectionRadius": 0,
   "strengthExpertise": 2,
   "lockPickingExpertise":1
+  },
+{ 
+  "agentType":"agentCollect",
+  "agentName": "Robin",
+  "communicationRange": 3,
+  "initialLocation": "free",
+  "backPackCapacityGold": 100,
+  "backPackCapacityDiamond":-1, 
+  "detectionRadius": 0,
+  "strengthExpertise": 2,
+  "lockPickingExpertise":1
+  },
+{ 
+  "agentType":"agentCollect",
+  "agentName": "Tibi",
+  "communicationRange": 3,
+  "initialLocation": "free",
+  "backPackCapacityGold": 100,
+  "backPackCapacityDiamond":-1, 
+  "detectionRadius": 0,
+  "strengthExpertise": 2,
+  "lockPickingExpertise":1
   }
 ]
