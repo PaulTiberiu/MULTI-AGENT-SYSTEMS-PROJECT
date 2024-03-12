@@ -135,6 +135,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 						System.out.println("I am "+this.myAgent.getName()+", my next node was null and now is "+myNextNode+", my position is "+myPosition);
 					}
 					
+					
 
 					msgTemplate=MessageTemplate.and(
 						MessageTemplate.MatchProtocol("SHARE-TOPO-POS-ID"),
@@ -154,6 +155,17 @@ public class ExploBehaviour extends SimpleBehaviour {
 						String agentIdSender = msginfo.getAgentId();
 						String nextPositionSender = msginfo.getNextPosition();
 						this.myMap.mergeMap(receivedMapSender);
+						
+						//################################################################################
+
+						// Set<SerializableNode<String, MapAttribute>> allNodesInMyMap = this.myMap.getOpenNodes();
+						// System.out.println("Nodes in myMap:");
+						// for (SerializableNode<String, MapAttribute> node : allNodesInMyMap) {
+						// 	System.out.println("Node ID: " + node.getNodeId());
+						// }
+
+						//################################################################################
+
 
 						Set<SerializableNode<String, MapAttribute>> all_nodes = msginfo.getMap().getAllNodes();
 
@@ -164,8 +176,8 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 						String except = infoRecept.getSender().getLocalName();
 						((ExploreFSMAgent) this.myAgent).addNodesToShare(nodeList, except);
-
-						if (this.myNextNode == nextPositionSender){ // NOEUD PRIORITAIRE
+						
+						if (this.myNextNode == nextPositionSender){ // Noeud prioritaire, cas de conflit de next node avec un autre agent 
 							if (Integer.parseInt(agentIdSender) < Integer.parseInt(this.myAgent.getLocalName())){
 								this.myMap.addNode(nextPositionSender, MapAttribute.closed);
 								myNextNode = this.myMap.getShortestPathToClosestOpenNode(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId()).get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
@@ -173,12 +185,15 @@ public class ExploBehaviour extends SimpleBehaviour {
 							}
 						}
 					}
-					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
+					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I will try to move to "+myNextNode);
 					cmpt++;
 					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
+					if(moved){
+						System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
+					}
 
 					while(!moved){
-						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node for any reason");
+						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node");
 						for(Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
 							if(!Objects.equals(obs.getLeft().getLocationId(), myNextNode)){
 								if(!Objects.equals(obs.getLeft(), myPosition)){
@@ -187,6 +202,8 @@ public class ExploBehaviour extends SimpleBehaviour {
 								}
 							}
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
+							System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
+
 						}
 					}
 				}

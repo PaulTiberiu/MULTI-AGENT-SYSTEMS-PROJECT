@@ -305,7 +305,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public MapRepresentation getPartialMap(ArrayList<String> nodesToShare) {
-		System.out.println("NodesToShare = "+nodesToShare);
+		//System.out.println("NodesToShare = "+nodesToShare);
 		MapRepresentation partialMap = new MapRepresentation(false);
 		if (nodesToShare == null) {
 			return partialMap;

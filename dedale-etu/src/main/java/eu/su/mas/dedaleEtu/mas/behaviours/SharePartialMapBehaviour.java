@@ -87,6 +87,7 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 
         ArrayList<String> nodesToShare = ((ExploreFSMAgent)this.myAgent).getNodesToShare(receiver);
 		MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap(true).getPartialMap(nodesToShare);
+		System.out.println("I am "+myAgent.getName()+" and my NodesToShare are : "+nodesToShare);
 		
 		SerializableSimpleGraph<String, MapAttribute> sg = partialMap.getSerializableGraph();
 
