@@ -60,3 +60,10 @@ Tim@Ithaq : 11
 Elsa@Ithaq : 20
 Tim@Ithaq : 11
 Elsa@Ithaq : 21
+Tim@Ithaq : 37
+Elsa@Ithaq : 42
+Elsa@Ithaq : 24
+Tim@Ithaq : 28
+Tim@Ithaq : 16
+Elsa@Ithaq : 18
+Tim@Ithaq : 20

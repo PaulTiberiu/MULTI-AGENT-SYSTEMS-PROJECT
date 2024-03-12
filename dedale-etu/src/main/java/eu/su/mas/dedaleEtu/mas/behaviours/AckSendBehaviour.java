@@ -40,6 +40,7 @@ public void action() {
         e.printStackTrace();
     }
     ((AbstractDedaleAgent)this.myAgent).sendMessage(ack);
+    System.out.println("receivers dans ACK Behaviour: " + receivers);
 }
 
 @Override

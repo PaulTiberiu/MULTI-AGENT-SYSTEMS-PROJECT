@@ -366,19 +366,19 @@ public class Principal {
 		 * AGENT Explo3
 		 *********/
 				//1) Get the container where the agent will appear
-				// c = containerList.get(ConfigurationFile.LOCAL_CONTAINER2_NAME);
-				// Assert.assertNotNull("This container does not exist",c);
+				c = containerList.get(ConfigurationFile.LOCAL_CONTAINER2_NAME);
+				Assert.assertNotNull("This container does not exist",c);
 				
-				// //2) Give the name of your agent, MUST be the same as the one given in the entities file.
-				// agentName="Robin";
+				//2) Give the name of your agent, MUST be the same as the one given in the entities file.
+				agentName="Robin";
 				
-				// //3) If you want to give specific parameters to your agent, add them here
-				// Object [] entityParametersExplo3={"Robin"};
+				//3) If you want to give specific parameters to your agent, add them here
+				Object [] entityParametersExplo3={"Robin"};
 				
-				// //4) Give the class name of your agent to let the system instantiate it
-				// ag=createNewDedaleAgent(c, agentName, ExploreFSMAgent.class.getName(), entityParametersExplo3);//ExploreSoloAgent
+				//4) Give the class name of your agent to let the system instantiate it
+				ag=createNewDedaleAgent(c, agentName, ExploreFSMAgent.class.getName(), entityParametersExplo3);//ExploreSoloAgent
 				
-				// agentList.add(ag);
+				agentList.add(ag);
 
 		/*********
 		 * AGENT Explo4

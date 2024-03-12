@@ -83,7 +83,9 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 			myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
 		}
 		
+		// Plutot un get ack senders si on a plusieurs acks
 		String receiver = ((ExploreFSMAgent) this.myAgent).getACKsender();
+		System.out.println("I am "+myAgent.getName()+" and I am sending my map to "+receiver);
 
         ArrayList<String> nodesToShare = ((ExploreFSMAgent)this.myAgent).getNodesToShare(receiver);
 		MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap(true).getPartialMap(nodesToShare);
@@ -100,7 +102,7 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 		msg.setSender(this.myAgent.getAID());
 
 		
-		msg.addReceiver(new AID(receiver,AID.ISLOCALNAME));
+		msg.addReceiver(new AID(receiver,AID.ISLOCALNAME));//??
 		try {					
 			msg.setContentObject(agentInfo);
 		} catch (IOException e) {
