@@ -24,10 +24,9 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private MapRepresentation myMap;
 	private Integer iteration = 0;
 	private List<String> list_agentNames;
-	private String ACKsender;
+	private List<String> AgentsTosend;
 	private HashMap<String, ArrayList<String>> nodesToShare; // key: agent name, value: list of IDs of the nodes to be shared next time we meet this agent
 	private HashMap<String, ArrayList<String>> nodesShared;
-	// private NodeSharingManager myNodeSharingManager = new NodeSharingManager(this.getLocalName(), null, null);
 	
 	/************************************************
 	* 
@@ -67,6 +66,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 				list_agentNames.add((String)args[i]);
 				i++;
 			}
+			System.out.println("Moi : +"+this.getLocalName()+" a pour list_agents = "+list_agentNames);
 		}
 
 		List<Behaviour> lb=new ArrayList<Behaviour>();
@@ -220,14 +220,27 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 
 
 	// Getter for the ack senders
-	public String getACKsender(){
-		return this.ACKsender;
+	public List<String> getAgentsTosend(){
+		return this.AgentsTosend;
 	}
 
 	// Setter for the ack senders
-	public void setACKsender(String agentName){
-		this.ACKsender = agentName;
+	public void addAgentsTosend(String agentName){
+		if (this.AgentsTosend == null) {
+            this.AgentsTosend = new ArrayList<String>();
+        }
+		if(!this.AgentsTosend.contains(agentName)){
+        	this.AgentsTosend.add(agentName);
+		}
 	}
+
+	public void resetAgentsTosend(){
+		this.AgentsTosend.clear();
+	}
+
+	public List<String> getAgentsNames(){
+		return list_agentNames;
+    }
 
 
     // Method to merge nodes to be shared with a specific agent

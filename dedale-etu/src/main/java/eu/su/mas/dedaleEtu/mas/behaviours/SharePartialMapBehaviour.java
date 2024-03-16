@@ -33,7 +33,7 @@ import eu.su.mas.dedaleEtu.mas.knowledge.AgentInfo;
 public class SharePartialMapBehaviour extends SimpleBehaviour {
 	
 	private MapRepresentation myMap;
-	//private List<String> receivers;
+	private List<String> receivers;
 	//private Integer cmpt = 0;
 	private String myNextNode;
 	/**
@@ -59,7 +59,6 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 
 	@Override
  	public void action() {
-		System.out.println("I am "+myAgent.getName()+" and I am sharing my map");
 		((ExploreFSMAgent)this.myAgent).addIteration();
 		myNextNode = null;
 		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
@@ -84,32 +83,37 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 		}
 		
 		// Plutot un get ack senders si on a plusieurs acks
-		String receiver = ((ExploreFSMAgent) this.myAgent).getACKsender();
-		System.out.println("I am "+myAgent.getName()+" and I am sending my map to "+receiver);
+		receivers = ((ExploreFSMAgent) this.myAgent).getAgentsTosend();	// Liste des ACKsenders	
 
-        ArrayList<String> nodesToShare = ((ExploreFSMAgent)this.myAgent).getNodesToShare(receiver);
-		MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap(true).getPartialMap(nodesToShare);
-		System.out.println("I am "+myAgent.getName()+" and my NodesToShare are : "+nodesToShare);
-		
-		SerializableSimpleGraph<String, MapAttribute> sg = partialMap.getSerializableGraph();
+		System.out.println("I am "+myAgent.getLocalName()+" and I am sending my map to "+receivers.size()+" people");
+		for(String receiver:receivers){
+			System.out.println("I am "+myAgent.getName()+" and I am sending my map to "+receiver);
+			ArrayList<String> nodesToShare = ((ExploreFSMAgent)this.myAgent).getNodesToShare(receiver);
+			MapRepresentation partialMap = ((ExploreFSMAgent)this.myAgent).getMap(true).getPartialMap(nodesToShare);
+			System.out.println("I am "+myAgent.getName()+" and my NodesToShare to "+receiver+" are : "+nodesToShare);
+			
+			SerializableSimpleGraph<String, MapAttribute> sg = partialMap.getSerializableGraph();
 
-		((ExploreFSMAgent)this.myAgent).addNodesShared(receiver, nodesToShare);
-		((ExploreFSMAgent) this.myAgent).resetNodesToShare(receiver);
+			((ExploreFSMAgent)this.myAgent).addNodesShared(receiver, nodesToShare);
+			((ExploreFSMAgent) this.myAgent).resetNodesToShare(receiver);
 
-        AgentInfo agentInfo = new AgentInfo(((AbstractDedaleAgent)this.myAgent).getLocalName(),myNextNode,sg);
-		ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-		msg.setProtocol("SHARE-TOPO-POS-ID");
-		msg.setSender(this.myAgent.getAID());
+			AgentInfo agentInfo = new AgentInfo(((AbstractDedaleAgent)this.myAgent).getLocalName(),myNextNode,sg);
+			ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+			msg.setProtocol("SHARE-TOPO-POS-ID");
+			msg.setSender(this.myAgent.getAID());
 
-		
-		msg.addReceiver(new AID(receiver,AID.ISLOCALNAME));//??
-		try {					
-			msg.setContentObject(agentInfo);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-		((ExploreFSMAgent)this.myAgent).setMap(this.myMap);
+			
+			msg.addReceiver(new AID(receiver,AID.ISLOCALNAME));
+			try {					
+				msg.setContentObject(agentInfo);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
+			((ExploreFSMAgent)this.myAgent).setMap(this.myMap);
+		}   
+		((ExploreFSMAgent)this.myAgent).resetAgentsTosend();
 	}
 
 	@Override

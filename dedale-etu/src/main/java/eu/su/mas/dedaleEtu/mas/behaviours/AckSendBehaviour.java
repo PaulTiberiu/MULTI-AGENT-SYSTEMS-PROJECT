@@ -21,13 +21,13 @@ public class AckSendBehaviour extends SimpleBehaviour {
  */
 	public AckSendBehaviour(final AbstractDedaleAgent myagent, List<String> receivers) {
 		super(myagent);
-		this.receivers = receivers;
 	}
 
 @Override
 public void action() {
     ((ExploreFSMAgent)this.myAgent).addIteration();
-    System.out.println("I am "+myAgent.getName()+" and I am sending an ACK");
+    receivers = ((ExploreFSMAgent)this.myAgent).getAgentsTosend();
+    System.out.println("I am "+myAgent.getName()+" and I am sending an ACK to "+receivers.toString());
     ACLMessage ack = new ACLMessage(ACLMessage.INFORM);
     ack.setProtocol("ACK");
     ack.setSender(this.myAgent.getAID());
@@ -40,7 +40,6 @@ public void action() {
         e.printStackTrace();
     }
     ((AbstractDedaleAgent)this.myAgent).sendMessage(ack);
-    System.out.println("receivers dans ACK Behaviour: " + receivers);
 }
 
 @Override

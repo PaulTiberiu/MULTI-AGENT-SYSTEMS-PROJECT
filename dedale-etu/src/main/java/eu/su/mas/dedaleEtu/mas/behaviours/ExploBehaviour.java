@@ -77,11 +77,15 @@ public class ExploBehaviour extends SimpleBehaviour {
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("PING"),
 			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
-		ACLMessage pingRecept=this.myAgent.receive(msgTemplate);
+		List<ACLMessage> pingRecept=this.myAgent.receive(msgTemplate, ((ExploreFSMAgent) this.myAgent).getAgentsNames().size());
 
 		if(pingRecept!=null){
-			((ExploreFSMAgent)this.myAgent).setACKsender(pingRecept.getSender().getLocalName());
-			exitValue = 2;
+			for(ACLMessage ping : pingRecept){
+				if(ping!=null){
+					((ExploreFSMAgent)this.myAgent).addAgentsTosend(ping.getSender().getLocalName());
+					exitValue = 2;
+				}
+			}
 		}
 
 		else if(cmpt >= 3){
@@ -95,6 +99,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 			if (myPosition!=null){
 				//List of observable from the agent's current position
 				List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+				System.out.println(lobs);
 
 				/**
 				 * Just added here to let you see what the agent is doing, otherwise he will be too quick
@@ -124,9 +129,11 @@ public class ExploBehaviour extends SimpleBehaviour {
 				}
 
 				//3) while openNodes is not empty, continues.
+				//if (!this.myMap.hasOpenNode() || (((ExploreFSMAgent) this.myAgent).getIteration() >= 200 && )){
 				if (!this.myMap.hasOpenNode()){
 					//Explo finished
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done !");
+					System.out.println(this.myMap.getClosedNodes());
 					exitValue = 3;
 				}else{
 					//4) select next move.
