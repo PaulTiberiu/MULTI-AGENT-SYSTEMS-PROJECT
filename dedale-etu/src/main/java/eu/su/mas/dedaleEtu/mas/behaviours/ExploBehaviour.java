@@ -4,6 +4,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import dataStructures.serializableGraph.SerializableNode;
@@ -99,7 +101,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 			if (myPosition!=null){
 				//List of observable from the agent's current position
 				List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
-				System.out.println(lobs);
+				// System.out.println(lobs);
 
 				/**
 				 * Just added here to let you see what the agent is doing, otherwise he will be too quick
@@ -135,6 +137,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done !");
 					System.out.println(this.myMap.getClosedNodes());
 					exitValue = 3;
+					chase_mode();
 				}else{
 					//4) select next move.
 					if (myNextNode==null){
@@ -162,17 +165,6 @@ public class ExploBehaviour extends SimpleBehaviour {
 						String agentIdSender = msginfo.getAgentId();
 						String nextPositionSender = msginfo.getNextPosition();
 						this.myMap.mergeMap(receivedMapSender);
-						
-						//################################################################################
-
-						// Set<SerializableNode<String, MapAttribute>> allNodesInMyMap = this.myMap.getOpenNodes();
-						// System.out.println("Nodes in myMap:");
-						// for (SerializableNode<String, MapAttribute> node : allNodesInMyMap) {
-						// 	System.out.println("Node ID: " + node.getNodeId());
-						// }
-
-						//################################################################################
-
 
 						Set<SerializableNode<String, MapAttribute>> all_nodes = msginfo.getMap().getAllNodes();
 
@@ -228,5 +220,18 @@ public class ExploBehaviour extends SimpleBehaviour {
 	public boolean done() {
 		return true;
 	}
+
+	public void chase_mode(){
+		System.out.println(this.myAgent.getName()+" ended exploration in "+((ExploreFSMAgent)this.myAgent).getIteration()+" iterations");
+
+		String repertoireActuel = System.getProperty("user.dir");
+		try (FileWriter writer = new FileWriter(repertoireActuel+"/resources/nbIterations.txt", true)) {
+			writer.write(myAgent.getName()+" : "+((ExploreFSMAgent)this.myAgent).getIteration()+"\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		System.out.println(this.myAgent.getName()+" starts to chase golem");
+	}	
 
 }

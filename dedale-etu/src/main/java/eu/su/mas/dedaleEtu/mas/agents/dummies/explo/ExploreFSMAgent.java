@@ -5,14 +5,13 @@ import java.util.List;
 import java.util.HashMap;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedale.mas.agent.behaviours.RandomWalkBehaviour;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 import eu.su.mas.dedaleEtu.mas.behaviours.AckSendBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SharePartialMapBehaviour;
-import eu.su.mas.dedaleEtu.mas.behaviours.StopBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.ChaseBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 // import eu.su.mas.dedaleEtu.mas.knowledge.NodeSharingManager;
 import jade.core.behaviours.Behaviour;
@@ -38,7 +37,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final String ping = "ping";
 	private static final String ackSend = "ackSend";
 	private static final String shareMap = "shareMap";
-	private static final String stop = "stop";
+	private static final String chase = "chase";
 	// private static final String rdmmove = "rdmmove";
 
 	/**
@@ -84,8 +83,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerState(new PingBehaviour(this, list_agentNames), ping);
 		fsm.registerState(new AckSendBehaviour(this, list_agentNames), ackSend);
 		fsm.registerState(new SharePartialMapBehaviour(this, list_agentNames), shareMap);
-		fsm.registerState(new StopBehaviour(this), stop);
-		// fsm.registerState(new RandomWalkBehaviour(this), rdmmove);
+		fsm.registerState(new ChaseBehaviour(this), chase);
 
 		/************************************************
 		 * 
@@ -96,13 +94,12 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(move, move, 0);
 		fsm.registerTransition(move, ping, 1);
 		fsm.registerTransition(move, ackSend, 2);
-		fsm.registerTransition(move, stop, 3);
+		fsm.registerTransition(move, chase, 3);
 		fsm.registerTransition(ping, move, 0);
 		fsm.registerTransition(ping, shareMap, 1);
 		fsm.registerDefaultTransition(ackSend, shareMap);
 		fsm.registerDefaultTransition(shareMap, move);
-		// fsm.registerDefaultTransition(stop, rdmmove);
-		// fsm.registerDefaultTransition(rdmmove, rdmmove);
+		fsm.registerDefaultTransition(chase, chase);
 
 		/************************************************
 		 * 
