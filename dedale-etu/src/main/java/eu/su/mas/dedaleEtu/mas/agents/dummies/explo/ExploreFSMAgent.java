@@ -83,7 +83,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerState(new PingBehaviour(this, list_agentNames), ping);
 		fsm.registerState(new AckSendBehaviour(this, list_agentNames), ackSend);
 		fsm.registerState(new SharePartialMapBehaviour(this, list_agentNames), shareMap);
-		fsm.registerState(new ChaseBehaviour(this), chase);
+		fsm.registerState(new ChaseBehaviour(this, list_agentNames), chase);
 
 		/************************************************
 		 * 
