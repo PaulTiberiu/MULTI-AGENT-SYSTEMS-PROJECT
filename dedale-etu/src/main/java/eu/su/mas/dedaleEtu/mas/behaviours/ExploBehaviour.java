@@ -194,17 +194,14 @@ public class ExploBehaviour extends SimpleBehaviour {
 					while(!moved){
 						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node");
 						for(Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
-							if(!Objects.equals(obs.getLeft().getLocationId(), myNextNode)){
-								if(!Objects.equals(obs.getLeft(), myPosition)){
-									myNextNode = obs.getLeft().getLocationId();
-									break;
-								}
+							if(obs.getLeft().getLocationId().compareTo(myNextNode) != 0 && (obs.getLeft().getLocationId()).compareTo(myPosition.getLocationId()) != 0){
+								myNextNode = obs.getLeft().getLocationId();
+								break;
 							}
-							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
-							System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
-
 						}
+						moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 					}
+					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
 				}
 			}
 		}
