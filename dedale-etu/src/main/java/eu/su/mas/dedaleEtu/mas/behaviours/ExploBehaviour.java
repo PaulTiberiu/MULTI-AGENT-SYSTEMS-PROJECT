@@ -132,7 +132,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 				//3) while openNodes is not empty, continues.
 				//if (!this.myMap.hasOpenNode() || (((ExploreFSMAgent) this.myAgent).getIteration() >= 200 && )){
-				if (!this.myMap.hasOpenNode()){
+				if (!this.myMap.hasOpenNode() || ((ExploreFSMAgent) this.myAgent).getIteration() >= 250){
 					//Explo finished
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done !");
 					System.out.println(this.myMap.getClosedNodes());

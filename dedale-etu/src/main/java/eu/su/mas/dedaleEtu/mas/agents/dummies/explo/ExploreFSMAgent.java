@@ -26,6 +26,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private List<String> AgentsTosend;
 	private HashMap<String, ArrayList<String>> nodesToShare; // key: agent name, value: list of IDs of the nodes to be shared next time we meet this agent
 	private HashMap<String, ArrayList<String>> nodesShared;
+	private String lastVisitedNode; // Field to store the last visited node
 	
 	/************************************************
 	* 
@@ -187,6 +188,13 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		}
 	}
 	
+    public String getLastVisitedNode() {
+        return lastVisitedNode;
+    }
+
+    public void setLastVisitedNode(String lastVisitedNode) {
+        this.lastVisitedNode = lastVisitedNode;
+    }
 
 
 	public void addNodesShared(String agentName, ArrayList<String> nodes){
