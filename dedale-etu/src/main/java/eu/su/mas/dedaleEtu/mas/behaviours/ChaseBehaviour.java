@@ -30,6 +30,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
     private List<Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>> sendersInfos;
     private MapRepresentation myMap;
     private SerializableSimpleGraph<String, MapAttribute> sg;
+    private String lastVisitedNode; // Field to store the last visited node
 
 
 
@@ -45,6 +46,16 @@ public class ChaseBehaviour extends SimpleBehaviour {
 		super(myagent);
         this.receivers = receivers;
 	}
+
+    // Method to get the last visited node
+    public String getLastVisitedNode() {
+        return lastVisitedNode;
+    }
+
+    // Method to set the last visited node
+    public String setLastVisitedNode(String lastVisitedNode) {
+        return this.lastVisitedNode = lastVisitedNode;
+    }
 
 @Override
 public void action() {
@@ -68,6 +79,7 @@ public void action() {
 		List<ACLMessage> infosRecept=this.myAgent.receive(msgTemplate, receivers.size());
 
 		if(infosRecept!=null){
+            //sendersInfos = new ArrayList<>();
             sendersInfos = new ArrayList<Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>>();
 			for(ACLMessage sender : infosRecept){
 				if(sender!=null){
@@ -81,6 +93,12 @@ public void action() {
 				}
 			}
 		}
+
+        System.out.println("I am "+this.myAgent.getLocalName()+" and my -- sendersInfos are: "+sendersInfos);
+        // if(sendersInfos != null){
+        //     System.out.println(sendersInfos.size());
+        // }
+        //System.out.println("NORMALLY, I SHOULD HAVE MULTIPLE RECEIVERS IN CERTAIN CASES, VERIFY IT");
 
         //List of observable from the agent's current position
         List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
@@ -102,7 +120,8 @@ public void action() {
         if (!isGolem){  // We don't smell anything
 
             if (sendersInfos != null){      // Someone smells something and tells me
-                for (int i=0; i<sendersInfos.size(); i++){      // More than one smells and tells me ? (TO DO : We have to sum those infos)
+                for (int i=0; i<sendersInfos.size(); i++){      // More than one agent smells and tells me ? (TO DO : We have to sum those infos)
+                                                                // HOW ARE WE DOING THIS?
                     Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>> infos = sendersInfos.get(i).getRight();
                     String next_pos_ally = infos.getLeft();
                     List<Couple<Location,List<Couple<Observation,Integer>>>> lobs_ally = infos.getRight();
@@ -113,7 +132,9 @@ public void action() {
                             if (reachable_from_ally.getLeft().getLocationId().compareTo(next_pos_ally) != 0){
                                 // My ally smells a stench but doesn't go for it
                                 List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), reachable_from_ally.getLeft().getLocationId());
-                                if (path!= null){
+                                // POUR DEBUG
+                                System.out.println(this.myAgent.getLocalName()+" Path to " +path);
+                                if (path!= null && path.size() > 0){
                                     move = new gsLocation(path.get(0));
                                     // So my next move is the 1st node in the shortest path to this stench
                                     break;
@@ -129,7 +150,9 @@ public void action() {
                         System.out.println(this.myAgent.getLocalName()+" Edges of "+next_pos_ally+" : "+edges);
                         for(String edge : edges){
                             List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), edge);
-                            if(path!=null){
+                            // POUR DEBUG
+                            System.out.println(this.myAgent.getLocalName()+" Path to "+edge+" : "+path);
+                            if(path!= null && path.size() > 0){
                                 move = new gsLocation(path.get(0));
                                 break;
                             }
@@ -148,17 +171,35 @@ public void action() {
             }
             else{   // I dont smell anything and nobody is calling me
                 //Random move from the current position if no informations
+                String lastVisitedNode = getLastVisitedNode();
+                List<Couple<Location,List<Couple<Observation,Integer>>>> observe = ((AbstractDedaleAgent)this.myAgent).observe();
                 Random r = new Random();
-                int moveId=1+r.nextInt(lobs.size()-1);
+                // int moveId=1+r.nextInt(lobs.size()-1);
+                int moveId;
+
+                if (lastVisitedNode == null) {
+                    moveId = 1 + r.nextInt(lobs.size() - 1);
+                } else {
+                    // Select a random move different from the last visited node
+                    do {
+                        moveId = 1 + r.nextInt(observe.size() - 1);
+                    } while (lobs.get(moveId).getLeft().getLocationId().equals(lastVisitedNode));
+                }
 
                 boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(lobs.get(moveId).getLeft());
 
-                move = (gsLocation) lobs.get(moveId).getLeft();
-
-                while(!moved){
-                    moveId=1+r.nextInt(lobs.size()-1);
-                    moved = ((AbstractDedaleAgent)this.myAgent).moveTo(lobs.get(moveId).getLeft());
+                // Update the last visited node if moved successfully
+                if (moved) {
+                    lastVisitedNode = lobs.get(moveId).getLeft().getLocationId();
+                    setLastVisitedNode(lastVisitedNode);
                 }
+
+                //move = (gsLocation) lobs.get(moveId).getLeft();
+
+                // while(!moved){
+                //     moveId=1+r.nextInt(lobs.size()-1);
+                //     moved = ((AbstractDedaleAgent)this.myAgent).moveTo(lobs.get(moveId).getLeft());
+                // }
             }
         }
         else{   // There is a Stench near us and I already chose my next move, I just have to send my infos
@@ -193,7 +234,7 @@ public void action() {
             }
             ((AbstractDedaleAgent)this.myAgent).sendMessage(infos);
 
-            ((AbstractDedaleAgent)this.myAgent).moveTo(move);   // que se passe t il si il essaye d aller sur le golem ? il va s'arreter et p.e le perdre ? a traiter
+            ((AbstractDedaleAgent)this.myAgent).moveTo(move);   // que se passe t il s'il essaye d aller sur le golem ? il va s'arreter et p.e le perdre ? a traiter
         }
 
         System.out.println(this.myAgent.getLocalName()+" was at "+myPosition+" and I moved to : "+ move.getLocationId());   

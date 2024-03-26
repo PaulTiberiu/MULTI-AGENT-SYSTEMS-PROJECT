@@ -22,7 +22,10 @@ import org.graphstream.ui.view.Viewer;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
 import javafx.application.Platform;
+
+import java.util.Set;
 
 /**
  * This simple topology representation only deals with the graph, not its content.</br>
@@ -370,6 +373,41 @@ public class MapRepresentation implements Serializable {
 		//System.out.println("Partial map: "+partialMap.g.getNodeCount()+" nodes, "+partialMap.g.nodes());
 		return partialMap;
 	}
+
+
+	public List<String> getNodesWithSmallestArity() {
+        int minDegree = Integer.MAX_VALUE;
+        List<String> nodesWithSmallestArity = new ArrayList<>();
+
+        for (Node node : this.g) {
+            int degree = node.getDegree();
+            if (degree < minDegree) {
+                minDegree = degree;
+                nodesWithSmallestArity.clear();
+                nodesWithSmallestArity.add(node.getId());
+            } else if (degree == minDegree) {
+                nodesWithSmallestArity.add(node.getId());
+            }
+        }
+
+        return nodesWithSmallestArity;
+    }
+
+		// public static void main(String[] args) {
+		// 	// Assuming map is initialized and accessible
+		// 	MapRepresentation map = ((ExploreFSMAgent) this.myAgent).getMap(true);
+
+		// 	String nodeWithMinArity = getNodeWithMinimumArity(map);
+
+		// 	System.out.println("Node with minimum arity: " + nodeWithMinArity);
+		// }
+
+
+
+
+
+
+
 
 	
 
