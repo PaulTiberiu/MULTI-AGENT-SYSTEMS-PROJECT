@@ -281,7 +281,7 @@ public void action() {
             }
             
             move = moves.get(0);
-            moves.remove(0);
+            // moves.remove(0);
 
             System.out.println("I am "+myAgent.getName()+" and I am sending my INFORMATIONS");
 
