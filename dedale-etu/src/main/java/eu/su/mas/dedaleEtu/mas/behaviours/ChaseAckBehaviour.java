@@ -8,7 +8,7 @@ import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 
-public class AckSendBehaviour extends SimpleBehaviour {
+public class ChaseAckBehaviour extends SimpleBehaviour {
     private static final long serialVersionUID = 8567689731496787661L;
     private List<String> receivers;
 	/**
@@ -19,7 +19,7 @@ public class AckSendBehaviour extends SimpleBehaviour {
  * @param myagent reference to the agent we are adding this behaviour to
  * @param receivers name of the agents to ping
  */
-	public AckSendBehaviour(final AbstractDedaleAgent myagent) {
+	public ChaseAckBehaviour(final AbstractDedaleAgent myagent) {
 		super(myagent);
 	}
 

@@ -79,15 +79,15 @@ public class ExploBehaviour extends SimpleBehaviour {
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("PING"),
 			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
-		List<ACLMessage> pingRecept=this.myAgent.receive(msgTemplate, ((ExploreFSMAgent) this.myAgent).getAgentsNames().size());
+		ACLMessage pingRecept=this.myAgent.receive(msgTemplate);
 
-		if(pingRecept!=null){
-			for(ACLMessage ping : pingRecept){
-				if(ping!=null){
-					((ExploreFSMAgent)this.myAgent).addAgentsTosend(ping.getSender().getLocalName());
-					exitValue = 2;
-				}
+		
+		if (pingRecept!=null){
+			while(pingRecept!=null){
+				((ExploreFSMAgent)this.myAgent).addAgentsTosend(pingRecept.getSender().getLocalName());
+				pingRecept=this.myAgent.receive(msgTemplate);
 			}
+			exitValue = 2;
 		}
 
 		else if(cmpt >= 3){
@@ -187,9 +187,6 @@ public class ExploBehaviour extends SimpleBehaviour {
 					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I will try to move to "+myNextNode);
 					cmpt++;
 					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
-					if(moved){
-						System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
-					}
 
 					while(!moved){
 						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node");

@@ -46,7 +46,7 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 	 * @param mymap (the map to share)
 	 * @param receivers the list of agents to send the map to
 	 */
-	public SharePartialMapBehaviour(Agent a, List<String> receivers) {
+	public SharePartialMapBehaviour(Agent a) {
 		super(a);
 		this.myMap = ((ExploreFSMAgent) a).getMap(true);
 		//this.receivers = receivers;

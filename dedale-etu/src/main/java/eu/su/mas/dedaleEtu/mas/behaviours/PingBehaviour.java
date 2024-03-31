@@ -63,16 +63,13 @@ public class PingBehaviour extends SimpleBehaviour {
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("ACK"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-		List<ACLMessage> ackRecept=this.myAgent.receive(msgTemplate, receivers.size());
+		ACLMessage ackRecept=this.myAgent.receive(msgTemplate);
 
-		if(ackRecept!=null){
-			for(ACLMessage ackSender : ackRecept){
-				if(ackSender!=null){
-					System.out.println("I am "+myAgent.getName()+" and I received an ACK from "+ackSender.getSender().getLocalName());
-					exitValue = 1;
-					((ExploreFSMAgent)this.myAgent).addAgentsTosend(ackSender.getSender().getLocalName());
-				}
-			}
+		while(ackRecept!=null){
+			System.out.println("I am "+myAgent.getName()+" and I received an ACK from "+ackRecept.getSender().getLocalName());
+			exitValue = 1;
+			((ExploreFSMAgent)this.myAgent).addAgentsTosend(ackRecept.getSender().getLocalName());
+			ackRecept = this.myAgent.receive(msgTemplate);
 		}
 	}
 

@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 
+import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 import eu.su.mas.dedaleEtu.mas.behaviours.AckSendBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.ChaseAckBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploBehaviour;
 import jade.core.behaviours.FSMBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.PingBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.ShareInfosBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SharePartialMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ChaseBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
@@ -27,6 +30,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private HashMap<String, ArrayList<String>> nodesToShare; // key: agent name, value: list of IDs of the nodes to be shared next time we meet this agent
 	private HashMap<String, ArrayList<String>> nodesShared;
 	private String lastVisitedNode; // Field to store the last visited node
+	private gsLocation nextMove;
 	
 	/************************************************
 	* 
@@ -39,6 +43,8 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final String ackSend = "ackSend";
 	private static final String shareMap = "shareMap";
 	private static final String chase = "chase";
+	private static final String chaseAck = "chaseAck";
+	private static final String shareInfos = "shareInfos";
 	// private static final String rdmmove = "rdmmove";
 
 	/**
@@ -82,9 +88,11 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 
 		fsm.registerFirstState(new ExploBehaviour(this), move);
 		fsm.registerState(new PingBehaviour(this, list_agentNames), ping);
-		fsm.registerState(new AckSendBehaviour(this, list_agentNames), ackSend);
-		fsm.registerState(new SharePartialMapBehaviour(this, list_agentNames), shareMap);
+		fsm.registerState(new AckSendBehaviour(this), ackSend);
+		fsm.registerState(new SharePartialMapBehaviour(this), shareMap);
 		fsm.registerState(new ChaseBehaviour(this, list_agentNames), chase);
+		fsm.registerState(new ChaseAckBehaviour(this), chaseAck);
+		fsm.registerState(new ShareInfosBehaviour(this), shareInfos);
 
 		/************************************************
 		 * 
@@ -100,7 +108,14 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(ping, shareMap, 1);
 		fsm.registerDefaultTransition(ackSend, shareMap);
 		fsm.registerDefaultTransition(shareMap, move);
-		fsm.registerDefaultTransition(chase, chase);
+
+
+		fsm.registerTransition(chase, chase, 0);
+		fsm.registerTransition(chase, chaseAck, 1);
+		fsm.registerTransition(chase, shareInfos, 2);
+		// fsm.registerTransition(chase, END, 3); // DETECTION DE BLOCAGE DU/DES GOLEM(S)
+		fsm.registerDefaultTransition(chaseAck, shareInfos);
+		fsm.registerDefaultTransition(shareInfos, chase);
 
 		/************************************************
 		 * 
@@ -247,21 +262,11 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		return list_agentNames;
     }
 
+	public void setNextMove(gsLocation nexMove){
+		this.nextMove = nexMove;
+	}
 
-    // Method to merge nodes to be shared with a specific agent
-
-	// SEE IF IT IS USEFUL
-    public void mergeNodesToShare(String agentName, ArrayList<String> nodes){
-        if (this.nodesToShare == null) {
-            this.nodesToShare = new HashMap<>();
-        }
-        ArrayList<String> existingNodes = getNodesToShare(agentName);
-        if (existingNodes == null) {
-            this.nodesToShare.put(agentName, nodes);
-        } else {
-            existingNodes.addAll(nodes);
-            this.nodesToShare.put(agentName, existingNodes);
-        }
-    }
-
+	public gsLocation getNextMove(){
+		return this.nextMove;
+	}
 }
