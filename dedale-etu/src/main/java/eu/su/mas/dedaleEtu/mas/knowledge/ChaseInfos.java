@@ -12,12 +12,14 @@ public class ChaseInfos implements Serializable {
 
     private String agentId;
     private String nextPosition;
-    private List<Couple<Location, List<Couple<Observation, Integer>>>> golemPos;
+    private String golemPosition;
+    private List<Couple<Location, List<Couple<Observation, Integer>>>> obs;
 
-    public ChaseInfos(String Name, String nextPosition, List<Couple<Location, List<Couple<Observation, Integer>>>> golemPos) {
+    public ChaseInfos(String Name, String nextPosition, String golemPosition, List<Couple<Location, List<Couple<Observation, Integer>>>> obs) {
         this.agentId = Name;
         this.nextPosition = nextPosition;
-        this.golemPos = golemPos;
+        this.golemPosition = golemPosition;
+        this.obs = obs;
     }
 
     // Getters and setters
@@ -37,11 +39,19 @@ public class ChaseInfos implements Serializable {
         this.nextPosition = nextPosition;
     }
 
-    public List<Couple<Location, List<Couple<Observation, Integer>>>> getGolemPos() {
-        return golemPos;
+    public String getGolemPosition() {
+        return golemPosition;
     }
 
-    public void setGolemPos(List<Couple<Location, List<Couple<Observation, Integer>>>> golemPos) {
-        this.golemPos = golemPos;
+    public void setGolemPosition(String golemPosition) {
+        this.golemPosition = golemPosition;
+    }
+
+    public List<Couple<Location, List<Couple<Observation, Integer>>>> getobs() {
+        return obs;
+    }
+
+    public void setobs(List<Couple<Location, List<Couple<Observation, Integer>>>> obs) {
+        this.obs = obs;
     }
 }

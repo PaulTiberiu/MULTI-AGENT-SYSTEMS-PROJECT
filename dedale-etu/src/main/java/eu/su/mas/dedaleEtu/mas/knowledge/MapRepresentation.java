@@ -22,7 +22,6 @@ import org.graphstream.ui.view.Viewer;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
 import javafx.application.Platform;
 
 import java.util.Set;
@@ -158,6 +157,36 @@ public class MapRepresentation implements Serializable {
 		}
 		return shortestPath;
 	}
+
+	public synchronized List<String> getShortestPathWithoutPassing(String idFrom, String idTo, List<String> nodesToAvoid) {	// MARCHE PAS : IL FAUT MODIFIER DIJKSTRA !!
+		List<String> shortestPath = new ArrayList<String>();
+	
+		Dijkstra dijkstra = new Dijkstra();// number of edge
+		dijkstra.init(g);
+		dijkstra.setSource(g.getNode(idFrom));
+		dijkstra.compute();// compute the distance to all nodes from idFrom
+		List<Node> path = dijkstra.getPath(g.getNode(idTo)).getNodePath(); // the shortest path from idFrom to idTo
+		Iterator<Node> iter = path.iterator();
+		Node prevNode = null;
+		while (iter.hasNext()) {
+			Node currentNode = iter.next();
+			if (prevNode != null && nodesToAvoid.contains(currentNode.getId())) {
+				// Skip this node if it's in the nodes to avoid
+				continue;
+			}
+			shortestPath.add(currentNode.getId());
+			prevNode = currentNode;
+		}
+		dijkstra.clear();
+		if (shortestPath.isEmpty()) {// The openNode is not currently reachable
+			return null;
+		} else {
+			shortestPath.remove(0); // remove the current position
+		}
+		return shortestPath;
+	}
+	
+	
 
 	public List<String> getShortestPathToClosestOpenNode(String myPosition) {
 		//1) Get all openNodes

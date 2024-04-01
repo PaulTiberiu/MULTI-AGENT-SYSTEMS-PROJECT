@@ -39,7 +39,16 @@ public class ShareInfosBehaviour extends SimpleBehaviour{
         
         gsLocation move = ((ExploreFSMAgent) myAgent).getNextMove();
 
-        ChaseInfos chaseInfos = new ChaseInfos(this.myAgent.getName(), move.getLocationId(), lobs);
+        gsLocation golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
+
+        String golemPos = null;
+
+        if(golemPosition != null){
+            golemPos = golemPosition.getLocationId();
+        }
+        
+
+        ChaseInfos chaseInfos = new ChaseInfos(this.myAgent.getName(), move.getLocationId(), golemPos, lobs);
 
         receivers = ((ExploreFSMAgent) this.myAgent).getAgentsTosend();	// Liste des ACKsenders	
         System.out.println("I am "+myAgent.getLocalName()+" and I am sending my ShareInfos to "+receivers.size()+" people");

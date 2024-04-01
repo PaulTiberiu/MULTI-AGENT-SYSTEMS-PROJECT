@@ -30,6 +30,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
     private List<Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>> sendersInfos;
     private MapRepresentation myMap;
     private int exitValue = 0;
+    private String golemPosition = null;
     //private SerializableSimpleGraph<String, MapAttribute> sg;
 
     /**
@@ -45,10 +46,10 @@ public class ChaseBehaviour extends SimpleBehaviour {
     @Override
     public void action() {
         try {
-                this.myAgent.doWait(2000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Thread.sleep(700);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
         exitValue = 0;
@@ -69,34 +70,6 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
         if (myPosition!=null){
 
-            System.out.println("I am "+myAgent.getName()+" and I am sending a PING");
-            ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);
-            ping.setProtocol("PING");
-            ping.setSender(this.myAgent.getAID());
-            for (String agentName : receivers) {
-                ping.addReceiver(new AID(agentName,AID.ISLOCALNAME));
-            }
-            try {					
-                ping.setContentObject(this.myAgent.getLocalName());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
-
-            msgTemplate=MessageTemplate.and(
-                MessageTemplate.MatchProtocol("ACK"),
-                MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-            ACLMessage ackRecept=this.myAgent.receive(msgTemplate);
-
-            while(ackRecept!=null){
-                System.out.println("I am "+myAgent.getName()+" and I received an ACK from "+ackRecept.getSender().getLocalName());
-                ((ExploreFSMAgent)this.myAgent).addAgentsTosend(ackRecept.getSender().getLocalName());
-                ackRecept = this.myAgent.receive(msgTemplate);
-                if (exitValue != 1){
-                    exitValue = 2;  // Go to ShareInfos
-                }
-            }
-
             msgTemplate=MessageTemplate.and(
                 MessageTemplate.MatchProtocol("INFORMATIONS"),
                 MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -108,7 +81,8 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 System.out.println("I am "+myAgent.getName()+" and I received "+infosRecept.getSender().getLocalName()+"'s INFORMATIONS");
                 try {
                     ChaseInfos chaseInfos = (ChaseInfos) infosRecept.getContentObject();
-                    sendersInfos.add(new Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>(chaseInfos.getAgentId(), new Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>(chaseInfos.getNextPosition(), chaseInfos.getGolemPos())));
+                    sendersInfos.add(new Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>(chaseInfos.getAgentId(), new Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>(chaseInfos.getNextPosition(), chaseInfos.getobs())));
+                    golemPosition = chaseInfos.getGolemPosition();
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
@@ -117,7 +91,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
             
 
             if(sendersInfos.size()>0){
-                System.out.println("I am "+this.myAgent.getLocalName()+" and I received "+sendersInfos.size()+" msg and the informations are: "+sendersInfos);
+                System.out.println("I am "+this.myAgent.getLocalName()+" and I received "+sendersInfos.size()+" msg and the informations are: "+sendersInfos +" golem postion = "+golemPosition);
             }
             else{
                 System.out.println("I am "+this.myAgent.getLocalName()+" and I didnt receive any information");
@@ -143,7 +117,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 }
             }
 
-            if (!isGolem){  // We don't smell anything
+            if (!isGolem){  // I don't smell anything
 
                 if (sendersInfos.size()>0){      // Someone smells something and tells me
                     ArrayList<String> next_allies_pos = new ArrayList<String>();
@@ -157,13 +131,33 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         lobs_allies.add(lobs_ally);
                     }
 
+                    ArrayList<String> allies_pos = new ArrayList<String>();
+                    for(List<Couple<Location,List<Couple<Observation,Integer>>>> lobs_ally : lobs_allies){      // Get position of my allies
+                        allies_pos.add(lobs_ally.get(0).getLeft().getLocationId());
+                    }
+
+                    if (golemPosition != null){
+                        Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition);
+                        if(edges_golem != null){
+                            for(String edge : edges_golem){
+                                if (edge != myPosition.getLocationId() && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
+                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
+                                    if(path!= null && path.size() > 0){
+                                        move = new gsLocation(path.get(0));
+                                        moves.add(move);
+                                    }
+                                }                            
+                            }
+                        }
+                    }
+
                     for(List<Couple<Location,List<Couple<Observation,Integer>>>> lobs_ally : lobs_allies){
                         for (Couple<Location,List<Couple<Observation,Integer>>> reachable_from_ally : lobs_ally){
                             if (!reachable_from_ally.getRight().isEmpty()){
                                 if(!next_allies_pos.contains(reachable_from_ally.getLeft().getLocationId())){
                                     // My ally smells a stench but nobody goes for it
-                                    List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), reachable_from_ally.getLeft().getLocationId());
-                                    
+                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), reachable_from_ally.getLeft().getLocationId(), allies_pos);
+
                                     System.out.println(this.myAgent.getLocalName()+" Path to " +path);
                                     if (path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
@@ -182,7 +176,8 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         if (edges!= null){
                             for(String edge : edges){
                                 if (edge != myPosition.getLocationId() && edges.size()>1){
-                                    List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), edge);
+                                    //List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), edge);
+                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
                                     if(path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
@@ -254,7 +249,43 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     }
                 }
             }
-            else{   // There is a Stench near us and I have to chose my next move and send my infos
+            else{   // There is a Stench near me and I have to chose my next move and send my infos
+
+                System.out.println("I am "+myAgent.getName()+" and I am sending a PING");
+                ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);
+                ping.setProtocol("PING");
+                ping.setSender(this.myAgent.getAID());
+                for (String agentName : receivers) {
+                    ping.addReceiver(new AID(agentName,AID.ISLOCALNAME));
+                }
+                try {					
+                    ping.setContentObject(this.myAgent.getLocalName());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
+
+                try {
+                    Thread.sleep(200);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                msgTemplate=MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("ACK"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                ACLMessage ackRecept=this.myAgent.receive(msgTemplate);
+
+                while(ackRecept!=null){
+                    System.out.println("I am "+myAgent.getName()+" and I received an ACK from "+ackRecept.getSender().getLocalName());
+                    ((ExploreFSMAgent)this.myAgent).addAgentsTosend(ackRecept.getSender().getLocalName());
+                    ackRecept = this.myAgent.receive(msgTemplate);
+                    if (exitValue != 1){
+                        exitValue = 2;  // Go to ShareInfos
+                    }
+                }
+
+
                 if (sendersInfos.size()>0){  // I received one or more messages, I have to choose my next move
                     ArrayList<String> next_allies_pos = new ArrayList<String>();
                     ArrayList<List<Couple<Location, List<Couple<Observation, Integer>>>>> lobs_allies = new ArrayList<List<Couple<Location,List<Couple<Observation,Integer>>>>>();
@@ -272,6 +303,28 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         allies_pos.add(lobs_ally.get(0).getLeft().getLocationId());
                     }
 
+                    if (golemPosition != null){
+                        for(Couple<Location, List<Couple<Observation, Integer>>> lobs_position : lobs){
+                            if (golemPosition == lobs_position.getLeft().getLocationId()){
+                                moves.add((gsLocation) lobs_position.getLeft());
+                                System.out.println(myAgent.getName()+" va sur le golem en "+lobs_position.getLeft());
+                            }
+                        }
+
+                        Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition);
+                        if(edges_golem != null){
+                            for(String edge : edges_golem){
+                                if (edge != myPosition.getLocationId() && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
+                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
+                                    if(path!= null && path.size() > 0){
+                                        move = new gsLocation(path.get(0));
+                                        moves.add(move);
+                                    }
+                                }                            
+                            }
+                        }
+                    }
+
                     for(int i=stenches.size()-1; i>=0; i--){    // I have to go to the furthest stench because if i go to stenches.get(0) and I am on a stench, I will not move! 
                         gsLocation stench = stenches.get(i);
                         if (!next_allies_pos.contains(stench.getLocationId()) && !allies_pos.contains(stench.getLocationId())){
@@ -286,8 +339,8 @@ public class ChaseBehaviour extends SimpleBehaviour {
                             if (!reachable_from_ally.getRight().isEmpty()){
                                 if(!next_allies_pos.contains(reachable_from_ally.getLeft().getLocationId()) && !allies_pos.contains(reachable_from_ally.getLeft().getLocationId())){
                                     // If my ally smelled a stench and nobody is going to move to it
-                                    List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), reachable_from_ally.getLeft().getLocationId());
-                                    
+                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), reachable_from_ally.getLeft().getLocationId(), allies_pos);
+
                                     if (path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
@@ -302,7 +355,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         if (edges!=null){
                             for(String edge : edges){
                                 if (edge != myPosition.getLocationId() && edges.size()>1){
-                                    List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), edge);
+                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
                                     if(path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
@@ -323,16 +376,15 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
                 ((ExploreFSMAgent) this.myAgent).setLastVisitedNode(myPosition.getLocationId());
 
-                ((ExploreFSMAgent) this.myAgent).setNextMove(move); // Sur ?
+                ((ExploreFSMAgent) this.myAgent).setNextMove(move);
 
                 boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);   // Si je bouge pas alors il y a le golem
 
-                // while(!moved && moves.size()>0){
-                //     move = moves.get(0);
-                //     moves.remove(0);
-                //     moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
-                //     System.out.println(this.myAgent.getLocalName()+" Is trying to move but failed, he is going to "+move);
-                // }
+                if (!moved){
+                    ((ExploreFSMAgent) this.myAgent).setNextMove((gsLocation) myPosition);
+                    System.out.println(this.myAgent.getLocalName()+" found the GOLEM !!!!!!!!!!!!!!!! IN FRONT OF ME IN POSITION "+move);
+                    ((ExploreFSMAgent) this.myAgent).setGolemPosition(move);
+                }
             }
 
             System.out.println(this.myAgent.getLocalName()+" was at "+myPosition+" and moved to : "+ move.getLocationId());   

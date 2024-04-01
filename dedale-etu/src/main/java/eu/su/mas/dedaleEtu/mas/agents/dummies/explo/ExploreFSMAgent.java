@@ -31,6 +31,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private HashMap<String, ArrayList<String>> nodesShared;
 	private String lastVisitedNode; // Field to store the last visited node
 	private gsLocation nextMove;
+	private gsLocation golemPosition;
 	
 	/************************************************
 	* 
@@ -262,11 +263,20 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		return list_agentNames;
     }
 
-	public void setNextMove(gsLocation nexMove){
-		this.nextMove = nexMove;
+	public void setNextMove(gsLocation nextMove){
+		this.nextMove = nextMove;
 	}
 
 	public gsLocation getNextMove(){
 		return this.nextMove;
 	}
+
+	public gsLocation getGolemPosition(){
+		return this.golemPosition;
+	}
+
+	public void setGolemPosition(gsLocation golemPosition){
+		this.golemPosition = golemPosition;
+	}
+
 }

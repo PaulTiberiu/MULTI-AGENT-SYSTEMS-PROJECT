@@ -60,6 +60,12 @@ public class PingBehaviour extends SimpleBehaviour {
         }
         ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
+		try {
+			this.myAgent.doWait(100);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("ACK"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));

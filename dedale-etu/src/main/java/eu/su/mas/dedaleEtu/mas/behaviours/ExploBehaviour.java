@@ -24,6 +24,7 @@ import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import jade.core.Timer;
 
 
 
@@ -76,6 +77,12 @@ public class ExploBehaviour extends SimpleBehaviour {
 			this.myMap = new MapRepresentation(isFullMap);
 		}
 
+		try {
+			Thread.sleep(10);                 //1000 milliseconds is one second.
+		} catch(InterruptedException ex) {
+			Thread.currentThread().interrupt();
+		}
+
 		MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("PING"),
 			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
@@ -102,15 +109,6 @@ public class ExploBehaviour extends SimpleBehaviour {
 				//List of observable from the agent's current position
 				List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 				// System.out.println(lobs);
-
-				/**
-				 * Just added here to let you see what the agent is doing, otherwise he will be too quick
-				 */
-				try {
-					this.myAgent.doWait(1000);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
 
 				//1) remove the current node from openlist and add it to closedNodes.
 				this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
