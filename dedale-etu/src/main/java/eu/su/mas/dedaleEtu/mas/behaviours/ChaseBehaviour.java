@@ -1,7 +1,6 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedale.mas.agent.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.mas.knowledge.ChaseInfos;
 import jade.core.behaviours.SimpleBehaviour;
 import java.util.List;
@@ -140,8 +139,9 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition);
                         if(edges_golem != null){
                             for(String edge : edges_golem){
-                                if (edge != myPosition.getLocationId() && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
+                                if (edge.equals(myPosition.getLocationId()) && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
                                     List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
+                                    System.out.println(myAgent.getLocalName()+" My path to the golem edge is = "+path);
                                     if(path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
@@ -175,7 +175,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         Set<String> edges = this.myMap.getSerializableGraph().getEdges(next_pos_ally);
                         if (edges!= null){
                             for(String edge : edges){
-                                if (edge != myPosition.getLocationId() && edges.size()>1){
+                                if (!edge.equals(myPosition.getLocationId()) && edges.size()>1){
                                     //List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), edge);
                                     List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
                                     if(path!= null && path.size() > 0){
@@ -189,8 +189,13 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
                     ((ExploreFSMAgent) this.myAgent).setLastVisitedNode(myPosition.getLocationId());
 
-                    move = moves.get(0);
-                    moves.remove(0);
+                    if (moves.size()>0){
+                        move = moves.get(0);
+                        moves.remove(0);
+                    }
+                    else{
+                        move = (gsLocation) myPosition;
+                    }                
 
                     ((ExploreFSMAgent) this.myAgent).setNextMove(move);
 
@@ -226,7 +231,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
                         System.out.println("I am "+myAgent.getName() +" and my last visited node is: " + lastVisitedNode);
                         moveId = 1 + r.nextInt(lobs.size() - 1);
-                        while (lobs.get(moveId).getLeft().getLocationId() == lastVisitedNode && lobs.size() > 2){
+                        while (lobs.get(moveId).getLeft().getLocationId().equals(lastVisitedNode) && lobs.size() > 2){
                             moveId = 1 + r.nextInt(lobs.size() - 1);
                             System.out.println("I am "+myAgent.getName() + "and I want to move to my last visited node that is "+lastVisitedNode);
                         }
@@ -266,7 +271,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
                 try {
-                    Thread.sleep(200);
+                    Thread.sleep(300);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -302,20 +307,23 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     for(List<Couple<Location,List<Couple<Observation,Integer>>>> lobs_ally : lobs_allies){      // Get position of my allies
                         allies_pos.add(lobs_ally.get(0).getLeft().getLocationId());
                     }
-
+                
                     if (golemPosition != null){
+                        System.out.println(myAgent.getName()+" Je connais la position du golem = "+golemPosition);
                         for(Couple<Location, List<Couple<Observation, Integer>>> lobs_position : lobs){
-                            if (golemPosition == lobs_position.getLeft().getLocationId()){
-                                moves.add((gsLocation) lobs_position.getLeft());
-                                System.out.println(myAgent.getName()+" va sur le golem en "+lobs_position.getLeft());
+                            if (golemPosition.equals(lobs_position.getLeft().getLocationId())){
+                                moves.add((gsLocation) myPosition);
+                                System.out.println(myAgent.getLocalName()+" The golem is in front of me I dont move");
                             }
                         }
 
                         Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition);
                         if(edges_golem != null){
                             for(String edge : edges_golem){
-                                if (edge != myPosition.getLocationId() && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
+                                System.out.println(myAgent.getLocalName()+" edge : "+edge + " is around the GOLEM");
+                                if (!edge.equals(myPosition.getLocationId()) && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
                                     List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
+                                    System.out.println(myAgent.getLocalName()+" I got a PATH to the GOLEM = "+path);
                                     if(path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
@@ -354,7 +362,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         Set<String> edges = this.myMap.getSerializableGraph().getEdges(stench.getLocationId());
                         if (edges!=null){
                             for(String edge : edges){
-                                if (edge != myPosition.getLocationId() && edges.size()>1){
+                                if (!edge.equals(myPosition.getLocationId()) && edges.size()>1){
                                     List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
                                     if(path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
@@ -384,6 +392,10 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     ((ExploreFSMAgent) this.myAgent).setNextMove((gsLocation) myPosition);
                     System.out.println(this.myAgent.getLocalName()+" found the GOLEM !!!!!!!!!!!!!!!! IN FRONT OF ME IN POSITION "+move);
                     ((ExploreFSMAgent) this.myAgent).setGolemPosition(move);
+                    move = (gsLocation) myPosition;
+                }
+                else{
+                    ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
                 }
             }
 

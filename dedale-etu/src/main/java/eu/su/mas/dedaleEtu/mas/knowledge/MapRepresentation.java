@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 //import java.util.stream.Stream;
+import java.util.stream.Stream;
 
 import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.Edge;
@@ -23,8 +24,6 @@ import org.graphstream.ui.view.Viewer;
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
 import javafx.application.Platform;
-
-import java.util.Set;
 
 /**
  * This simple topology representation only deals with the graph, not its content.</br>
@@ -157,25 +156,53 @@ public class MapRepresentation implements Serializable {
 		}
 		return shortestPath;
 	}
+	
 
 	public synchronized List<String> getShortestPathWithoutPassing(String idFrom, String idTo, List<String> nodesToAvoid) {	// MARCHE PAS : IL FAUT MODIFIER DIJKSTRA !!
+		if(nodesToAvoid.contains(idFrom)){
+			nodesToAvoid.remove(idFrom);
+		}
+		
 		List<String> shortestPath = new ArrayList<String>();
+
+		Stream<Node> edges_stream = null;
+		List<Node> edges = new ArrayList<Node>(); 
+
+		if (nodesToAvoid.size()>0){
+			for (String node : nodesToAvoid) {
+				Node n = g.getNode(node);
+				if(n != null){
+					edges_stream = n.neighborNodes();
+					Iterator<Node> it = edges_stream.iterator();
+					while (it.hasNext()) {
+						Node edge = it.next();
+						edges.add(edge);
+					}
+					g.removeNode(node);
+				}	
+			}
+		}
 	
 		Dijkstra dijkstra = new Dijkstra();// number of edge
 		dijkstra.init(g);
 		dijkstra.setSource(g.getNode(idFrom));
 		dijkstra.compute();// compute the distance to all nodes from idFrom
 		List<Node> path = dijkstra.getPath(g.getNode(idTo)).getNodePath(); // the shortest path from idFrom to idTo
-		Iterator<Node> iter = path.iterator();
-		Node prevNode = null;
-		while (iter.hasNext()) {
-			Node currentNode = iter.next();
-			if (prevNode != null && nodesToAvoid.contains(currentNode.getId())) {
-				// Skip this node if it's in the nodes to avoid
-				continue;
+
+		for (String node : nodesToAvoid) {
+			Node n = g.getNode(node);
+			if(n == null){
+				g.addNode(node);
+				n = g.getNode(node);
+				n.clearAttributes();
+				n.setAttribute("ui.class", MapAttribute.closed.toString());
+				n.setAttribute("ui.label",node);
 			}
-			shortestPath.add(currentNode.getId());
-			prevNode = currentNode;
+		}
+
+		Iterator<Node> iter = path.iterator();
+		while (iter.hasNext()) {
+			shortestPath.add(iter.next().getId());
 		}
 		dijkstra.clear();
 		if (shortestPath.isEmpty()) {// The openNode is not currently reachable
@@ -382,24 +409,7 @@ public class MapRepresentation implements Serializable {
 				partialMap.addEdge(node0, node1);
 			}
 		}
-		//System.out.print("Partial map: " + partialMap.g.getNodeCount() + " nodes, ");
-		//System.out.println();
 
-
-		// Assuming Node is the type of objects in the stream
-		//Stream<Node> nodeStream = partialMap.g.nodes();
-
-		// Convert the stream to a list
-		//List<Node> nodeList = nodeStream.collect(Collectors.toList());
-
-		// Print the nodes
-		// System.out.print("Partial map: " + partialMap.g.getNodeCount() + " nodes, ");
-		// for (Node node : nodeList) {
-		// 	System.out.print(node.toString() + " ");
-		// }
-		// System.out.println();
-
-		//System.out.println("Partial map: "+partialMap.g.getNodeCount()+" nodes, "+partialMap.g.nodes());
 		return partialMap;
 	}
 
@@ -421,16 +431,6 @@ public class MapRepresentation implements Serializable {
 
         return nodesWithSmallestArity;
     }
-
-		// public static void main(String[] args) {
-		// 	// Assuming map is initialized and accessible
-		// 	MapRepresentation map = ((ExploreFSMAgent) this.myAgent).getMap(true);
-
-		// 	String nodeWithMinArity = getNodeWithMinimumArity(map);
-
-		// 	System.out.println("Node with minimum arity: " + nodeWithMinArity);
-		// }
-	
 
 	/**
 	 * 

@@ -723,12 +723,11 @@ public class Dijkstra_RT extends AbstractSpanningTree {
 	 *         source to the target
 	 * @see #getPathEdgesStream(Node)
 	 */
-	public Iterable<Edge> getPathEdges(final Node target) {
+	public Iterable<Edge>  getPathEdges(final Node target) {
 		return new Iterable<Edge>() {
 			public Iterator<Edge> iterator() {
 				return new EdgeIterator(target);
 			}
-
 		};
 	}
 
