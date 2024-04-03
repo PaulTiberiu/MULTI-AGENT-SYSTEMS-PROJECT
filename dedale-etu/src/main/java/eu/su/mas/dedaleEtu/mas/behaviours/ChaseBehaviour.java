@@ -45,7 +45,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
     @Override
     public void action() {
         try {
-            Thread.sleep(700);
+            Thread.sleep(1000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -117,6 +117,12 @@ public class ChaseBehaviour extends SimpleBehaviour {
             }
 
             if (!isGolem){  // I don't smell anything
+
+                // try {
+                //     Thread.sleep(500);
+                // } catch (Exception e) {
+                //     e.printStackTrace();
+                // }
 
                 if (sendersInfos.size()>0){      // Someone smells something and tells me
                     ArrayList<String> next_allies_pos = new ArrayList<String>();
@@ -270,11 +276,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 }
                 ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
-                try {
-                    Thread.sleep(300);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                // try {
+                //     Thread.sleep(500);
+                // } catch (Exception e) {
+                //     e.printStackTrace();
+                // }
 
                 msgTemplate=MessageTemplate.and(
                     MessageTemplate.MatchProtocol("ACK"),
