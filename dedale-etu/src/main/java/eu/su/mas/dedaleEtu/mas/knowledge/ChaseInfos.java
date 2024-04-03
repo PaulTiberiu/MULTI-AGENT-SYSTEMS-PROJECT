@@ -5,6 +5,7 @@ import java.util.List;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.env.gs.gsLocation;
 
 
 public class ChaseInfos implements Serializable {
@@ -12,10 +13,10 @@ public class ChaseInfos implements Serializable {
 
     private String agentId;
     private String nextPosition;
-    private String golemPosition;
+    private gsLocation golemPosition;
     private List<Couple<Location, List<Couple<Observation, Integer>>>> obs;
 
-    public ChaseInfos(String Name, String nextPosition, String golemPosition, List<Couple<Location, List<Couple<Observation, Integer>>>> obs) {
+    public ChaseInfos(String Name, String nextPosition, gsLocation golemPosition, List<Couple<Location, List<Couple<Observation, Integer>>>> obs) {
         this.agentId = Name;
         this.nextPosition = nextPosition;
         this.golemPosition = golemPosition;
@@ -39,11 +40,11 @@ public class ChaseInfos implements Serializable {
         this.nextPosition = nextPosition;
     }
 
-    public String getGolemPosition() {
+    public gsLocation getGolemPosition() {
         return golemPosition;
     }
 
-    public void setGolemPosition(String golemPosition) {
+    public void setGolemPosition(gsLocation golemPosition) {
         this.golemPosition = golemPosition;
     }
 

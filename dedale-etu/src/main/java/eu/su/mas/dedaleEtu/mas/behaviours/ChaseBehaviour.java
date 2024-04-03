@@ -29,7 +29,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
     private List<Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>> sendersInfos;
     private MapRepresentation myMap;
     private int exitValue = 0;
-    private String golemPosition = null;
+    private gsLocation golemPosition = null;
     //private SerializableSimpleGraph<String, MapAttribute> sg;
 
     /**
@@ -136,7 +136,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     }
 
                     if (golemPosition != null){
-                        Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition);
+                        Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
                         if(edges_golem != null){
                             for(String edge : edges_golem){
                                 if (edge.equals(myPosition.getLocationId()) && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
@@ -311,13 +311,14 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     if (golemPosition != null){
                         System.out.println(myAgent.getName()+" Je connais la position du golem = "+golemPosition);
                         for(Couple<Location, List<Couple<Observation, Integer>>> lobs_position : lobs){
-                            if (golemPosition.equals(lobs_position.getLeft().getLocationId())){
+                            if (golemPosition.getLocationId().equals(lobs_position.getLeft().getLocationId())){
                                 moves.add((gsLocation) myPosition);
                                 System.out.println(myAgent.getLocalName()+" The golem is in front of me I dont move");
                             }
                         }
 
-                        Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition);
+                        Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                        System.out.println(myAgent.getLocalName()+" edge : "+edges_golem + " are the edges around the GOLEM : "+golemPosition.getLocationId());
                         if(edges_golem != null){
                             for(String edge : edges_golem){
                                 System.out.println(myAgent.getLocalName()+" edge : "+edge + " is around the GOLEM");
@@ -395,7 +396,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     move = (gsLocation) myPosition;
                 }
                 else{
-                    ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
+                    ((ExploreFSMAgent) this.myAgent).setGolemPosition(golemPosition);
                 }
             }
 

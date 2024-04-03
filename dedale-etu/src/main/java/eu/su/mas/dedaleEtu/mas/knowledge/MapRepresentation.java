@@ -156,63 +156,57 @@ public class MapRepresentation implements Serializable {
 		}
 		return shortestPath;
 	}
+	public synchronized List<String> getShortestPathWithoutPassing(String idFrom, String idTo, List<String> nodesToAvoid) {
+		List<String> shortestPath = new ArrayList<>();
 	
-
-	public synchronized List<String> getShortestPathWithoutPassing(String idFrom, String idTo, List<String> nodesToAvoid) {	// MARCHE PAS : IL FAUT MODIFIER DIJKSTRA !!
 		if(nodesToAvoid.contains(idFrom)){
 			nodesToAvoid.remove(idFrom);
 		}
-		
-		List<String> shortestPath = new ArrayList<String>();
-
-		Stream<Node> edges_stream = null;
-		List<Node> edges = new ArrayList<Node>(); 
-
-		if (nodesToAvoid.size()>0){
-			for (String node : nodesToAvoid) {
-				Node n = g.getNode(node);
-				if(n != null){
-					edges_stream = n.neighborNodes();
-					Iterator<Node> it = edges_stream.iterator();
-					while (it.hasNext()) {
-						Node edge = it.next();
-						edges.add(edge);
-					}
-					g.removeNode(node);
-				}	
+		if(nodesToAvoid.contains(idTo)){
+			nodesToAvoid.remove(idTo);
+		}
+	
+		// Remove nodes to avoid temporarily
+		List<Node> removedNodes = new ArrayList<>();
+		for (String nodeId : nodesToAvoid) {
+			Node node = g.getNode(nodeId);
+			if (node != null) {
+				removedNodes.add(node);
+				g.removeNode(node);
 			}
 		}
 	
-		Dijkstra dijkstra = new Dijkstra();// number of edge
+		Dijkstra dijkstra = new Dijkstra();
 		dijkstra.init(g);
 		dijkstra.setSource(g.getNode(idFrom));
-		dijkstra.compute();// compute the distance to all nodes from idFrom
-		List<Node> path = dijkstra.getPath(g.getNode(idTo)).getNodePath(); // the shortest path from idFrom to idTo
-
-		for (String node : nodesToAvoid) {
-			Node n = g.getNode(node);
-			if(n == null){
-				g.addNode(node);
-				n = g.getNode(node);
-				n.clearAttributes();
-				n.setAttribute("ui.class", MapAttribute.closed.toString());
-				n.setAttribute("ui.label",node);
-			}
-		}
-
+		dijkstra.compute();
+		List<Node> path = dijkstra.getPath(g.getNode(idTo)).getNodePath();
 		Iterator<Node> iter = path.iterator();
 		while (iter.hasNext()) {
 			shortestPath.add(iter.next().getId());
 		}
 		dijkstra.clear();
-		if (shortestPath.isEmpty()) {// The openNode is not currently reachable
-			return null;
-		} else {
-			shortestPath.remove(0); // remove the current position
+	
+		// Restore removed nodes
+		for (Node removedNode : removedNodes) {
+			Node node = g.getNode(removedNode.getId());
+        	if (node == null) {
+				g.addNode(removedNode.getId());
+				removedNode = g.getNode(removedNode.getId());
+				removedNode.clearAttributes();
+				removedNode.setAttribute("ui.class", MapAttribute.closed.toString());
+				removedNode.setAttribute("ui.label",removedNode.getId());
+			}
 		}
+	
+		if (shortestPath.isEmpty()) {
+			return null; // The destination is not currently reachable
+		} else {
+			shortestPath.remove(0); // Remove the current position
+		}
+	
 		return shortestPath;
 	}
-	
 	
 
 	public List<String> getShortestPathToClosestOpenNode(String myPosition) {
