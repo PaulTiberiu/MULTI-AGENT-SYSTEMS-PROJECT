@@ -128,7 +128,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 				//3) while openNodes is not empty, continues.
 				//if (!this.myMap.hasOpenNode() || (((ExploreFSMAgent) this.myAgent).getIteration() >= 200 && )){
-				if (!this.myMap.hasOpenNode() || ((ExploreFSMAgent) this.myAgent).getIteration() >= 250){
+				if (!this.myMap.hasOpenNode() || ((ExploreFSMAgent) this.myAgent).getIteration() >= 300){
 					//Explo finished
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done !");
 					System.out.println(this.myMap.getClosedNodes());
@@ -184,15 +184,22 @@ public class ExploBehaviour extends SimpleBehaviour {
 					cmpt++;
 					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 
+					int c = 1;
+
 					while(!moved){
 						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node");
-						for(Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
+						if (c >= lobs.size()){
+							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(myPosition);
+						}
+						else{
+							Couple<Location, List<Couple<Observation, Integer>>> obs = lobs.get(c);
 							if(obs.getLeft().getLocationId().compareTo(myNextNode) != 0 && (obs.getLeft().getLocationId()).compareTo(myPosition.getLocationId()) != 0){
 								myNextNode = obs.getLeft().getLocationId();
 								break;
 							}
+							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
+							c++;
 						}
-						moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 					}
 					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
 				}

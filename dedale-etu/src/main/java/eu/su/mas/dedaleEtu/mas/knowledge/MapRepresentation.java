@@ -23,7 +23,6 @@ import org.graphstream.ui.view.Viewer;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
-import javafx.application.Platform;
 
 /**
  * This simple topology representation only deals with the graph, not its content.</br>
@@ -70,9 +69,9 @@ public class MapRepresentation implements Serializable {
 		this.g.setAttribute("ui.stylesheet",nodeStyle);
 
 		if(isFullMap){
-			Platform.runLater(() -> {
-				openGui();
-			});
+			// Platform.runLater(() -> {
+			// 	openGui();
+			// });
 		}
 		//this.viewer = this.g.display();
 		this.nbEdges=0;
@@ -156,8 +155,14 @@ public class MapRepresentation implements Serializable {
 		}
 		return shortestPath;
 	}
+	
 	public synchronized List<String> getShortestPathWithoutPassing(String idFrom, String idTo, List<String> nodesToAvoid) {
 		List<String> shortestPath = new ArrayList<>();
+
+		if(idFrom == null || idTo == null || g.getNode(idFrom) == null || g.getNode(idTo) == null){
+			System.out.println("\n\nERREUR ERREUR ERREUR ERREUR ERREUR ERREUR ERREUR ERREUR ERREUR IDFROM = "+idFrom+" IDTO = "+idTo+" g.getNode(idFrom) = "+g.getNode(idFrom)+" g.getNode(idTo) = "+g.getNode(idTo)+"\n\n");
+			return null;
+		}
 	
 		if(nodesToAvoid.contains(idFrom)){
 			nodesToAvoid.remove(idFrom);
@@ -165,14 +170,30 @@ public class MapRepresentation implements Serializable {
 		if(nodesToAvoid.contains(idTo)){
 			nodesToAvoid.remove(idTo);
 		}
-	
-		// Remove nodes to avoid temporarily
+
+		Stream<Edge> edges_stream = null;
+		List<Couple<String, Couple<Node, Node>>> edges = new ArrayList<Couple<String, Couple<Node, Node>>>(); 
 		List<Node> removedNodes = new ArrayList<>();
-		for (String nodeId : nodesToAvoid) {
-			Node node = g.getNode(nodeId);
-			if (node != null) {
-				removedNodes.add(node);
-				g.removeNode(node);
+
+		// Remove nodes to avoid temporarily
+		if (nodesToAvoid.size()>0){
+			for (String nodeId : nodesToAvoid) {
+				Node n = g.getNode(nodeId);
+				if(n != null && !n.getId().equals(idFrom) && !n.getId().equals(idTo)){
+					edges_stream = n.edges();
+					List<Edge> edges_list = edges_stream.collect(Collectors.toList());
+					if (edges_list.size()>0){
+						for(Edge edge : edges_list) {
+							Edge e = g.getEdge(edge.getId());
+							if (e!=null) {
+								edges.add(new Couple<String, Couple<Node, Node>>(edge.getId(), new Couple<Node, Node>(edge.getNode0(), edge.getNode1())));
+								g.removeEdge(e);
+							}
+						}
+						removedNodes.add(n);
+						g.removeNode(n);
+					}
+				}
 			}
 		}
 	
@@ -196,6 +217,13 @@ public class MapRepresentation implements Serializable {
 				removedNode.clearAttributes();
 				removedNode.setAttribute("ui.class", MapAttribute.closed.toString());
 				removedNode.setAttribute("ui.label",removedNode.getId());
+			}
+		}
+
+		// Restore removed edges
+		for(Couple<String, Couple<Node, Node>> edge : edges){
+			if(g.getEdge(edge.getLeft())==null){
+				g.addEdge(edge.getLeft(), edge.getRight().getLeft().getId(), edge.getRight().getRight().getId());
 			}
 		}
 	
@@ -362,6 +390,8 @@ public class MapRepresentation implements Serializable {
 		//System.out.println("Merge done");
 	}
 
+
+
 	public MapRepresentation getPartialMap(ArrayList<String> nodesToShare) {
 		//System.out.println("NodesToShare = "+nodesToShare);
 		MapRepresentation partialMap = new MapRepresentation(false);
@@ -423,8 +453,31 @@ public class MapRepresentation implements Serializable {
             }
         }
 
-        return nodesWithSmallestArity;
-    }
+		return nodesWithSmallestArity;
+	}
+
+
+	public MapRepresentation getStenchMap(ArrayList<String> StenchNodes){
+		MapRepresentation stenchMap = new MapRepresentation(false);
+		if (StenchNodes == null) {
+			return stenchMap;
+		}
+		
+		// Adding the nodes
+		for (String nodeId: StenchNodes) {
+			stenchMap.g.addNode(nodeId);
+		}
+		// Adding the edges
+		for (String nodeId: StenchNodes) {
+			Node n = this.g.getNode(nodeId);
+			for (Object edge: n.edges().toArray()) {
+				String node0 = ((Edge) edge).getNode0().getId();
+				String node1 = ((Edge) edge).getNode1().getId();
+				stenchMap.addEdge(node0, node1);
+			}	
+		}
+		return stenchMap;    
+	}
 
 	/**
 	 * 

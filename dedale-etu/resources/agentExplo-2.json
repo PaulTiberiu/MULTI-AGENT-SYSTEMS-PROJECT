@@ -47,10 +47,10 @@
     "agentType":"wumpus",
     "agentName": "G1",
     "communicationRange": 0,
-    "initialLocation": "free",
+    "initialLocation": "5_5",
     "backPackCapacityGold": 200,
     "backPackCapacityDiamond":-1, 
-    "detectionRadius": 1,
+    "detectionRadius": 3,
     "strengthExpertise": 0,
     "lockPickingExpertise":0
   }
