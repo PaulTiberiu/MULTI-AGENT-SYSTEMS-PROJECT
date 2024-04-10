@@ -50,7 +50,7 @@
     "initialLocation": "5_5",
     "backPackCapacityGold": 200,
     "backPackCapacityDiamond":-1, 
-    "detectionRadius": 3,
+    "detectionRadius": 2,
     "strengthExpertise": 0,
     "lockPickingExpertise":0
   }

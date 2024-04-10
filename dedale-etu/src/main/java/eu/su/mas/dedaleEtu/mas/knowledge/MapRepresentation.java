@@ -457,6 +457,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 
+	// Partial Graph of nodes containing stench
 	public MapRepresentation getStenchMap(ArrayList<String> StenchNodes){
 		MapRepresentation stenchMap = new MapRepresentation(false);
 		if (StenchNodes == null) {

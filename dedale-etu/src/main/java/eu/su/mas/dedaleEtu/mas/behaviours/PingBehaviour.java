@@ -44,7 +44,7 @@ public class PingBehaviour extends SimpleBehaviour {
 
 	@Override
 	public void action() {
-		((ExploreFSMAgent)this.myAgent).addIteration();
+		// ((ExploreFSMAgent)this.myAgent).addIteration();
 		exitValue = 0;
 		System.out.println("I am "+myAgent.getName()+" and I am sending a PING");
         ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);

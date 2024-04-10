@@ -25,7 +25,7 @@ public class AckSendBehaviour extends SimpleBehaviour {
 
 @Override
 public void action() {
-    ((ExploreFSMAgent)this.myAgent).addIteration();
+    // ((ExploreFSMAgent)this.myAgent).addIteration();
     receivers = ((ExploreFSMAgent)this.myAgent).getAgentsTosend();
     System.out.println("I am "+myAgent.getName()+" and I am sending an ACK to "+receivers.toString());
     ACLMessage ack = new ACLMessage(ACLMessage.INFORM);

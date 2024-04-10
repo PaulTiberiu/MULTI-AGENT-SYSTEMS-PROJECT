@@ -91,12 +91,16 @@ public class ChaseBehaviour extends SimpleBehaviour {
             
 
             if(sendersInfos.size()>0){
-                System.out.println("I am "+this.myAgent.getLocalName()+" and I received "+sendersInfos.size()+" msg and the informations are: "+sendersInfos +" golem postion = "+golemPosition);
+                System.out.println("I am "+this.myAgent.getLocalName()+" and I received "+sendersInfos.size()+" msg and the informations are: "+sendersInfos +"\ngolem postion = "+golemPosition);
             }
             else{
                 System.out.println("I am "+this.myAgent.getLocalName()+" and I didnt receive any information");
             }
             
+            if(golemPosition==null){
+                golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
+                System.out.println("I remember the position of the golem he is at : "+golemPosition);
+            }
 
             //List of observable from the agent's current position
             List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
@@ -106,10 +110,13 @@ public class ChaseBehaviour extends SimpleBehaviour {
             List<gsLocation> stenches = new ArrayList<gsLocation>();
             List<gsLocation> moves = new ArrayList<gsLocation>();
             gsLocation move = null;
+            List<String> pathToG = ((ExploreFSMAgent) myAgent).getPathToG();
 
             Random random = new Random();
 
             // CHASE
+
+            boolean p = false;
 
             for (Couple<Location,List<Couple<Observation,Integer>>> reachable : lobs){
                 // If we detect a golem, we will chase it using the given direction node (see point 1))
@@ -117,6 +124,15 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     isGolem = true;
                     stenches.add((gsLocation) reachable.getLeft());
                 }
+
+                if(pathToG!=null && reachable.getLeft().equals((Location)(new gsLocation(pathToG.get(0))))){    // If the path is not reachable, then we cant follow it
+                    p = true;   // The path is reachable
+                }
+            }
+
+            if (p == false){    // If the path is not reachable : we dont follow it
+                pathToG = null;
+                ((ExploreFSMAgent) myAgent).setPathToG(pathToG);
             }
 
             Collections.shuffle(stenches);
@@ -146,7 +162,9 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
                     if (golemPosition != null){
 
-                        Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                        Set<String> edges_g = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                        List<String> edges_golem = new ArrayList<String>(edges_g);
+                        Collections.shuffle(edges_golem);
                         if(edges_golem != null){
                             System.out.println(this.myAgent.getLocalName()+" I dont smell and I know where is the golem so edges_golem = "+edges_golem);
                             for(String edge : edges_golem){
@@ -156,13 +174,26 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                     if(path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
+                                        path.remove(0);
+                                        if (path.size()>0){
+                                            ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                        }
+                                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                     }
                                 }                            
                             }
                         }
                     }
 
-                    // PATH A GARDER EN MEMOIRE ET A SUIVRE
+                    if (pathToG!=null){
+                        move = new gsLocation(pathToG.get(0));
+                        moves.add(move);
+                        pathToG.remove(0);
+                        if (pathToG.size()>0){
+                            ((ExploreFSMAgent) myAgent).setPathToG(pathToG);
+                        }
+                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
+                    }
 
                     for(List<Couple<Location,List<Couple<Observation,Integer>>>> lobs_ally : lobs_allies){
                         for (Couple<Location,List<Couple<Observation,Integer>>> reachable_from_ally : lobs_ally){
@@ -176,6 +207,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
                                         // So my next move is the 1st node in the shortest path to this stench
+                                        path.remove(0);
+                                        if (path.size()>0){
+                                            ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                        }
+                                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                         continue;
                                     }
                                     System.out.println("I am "+this.myAgent.getLocalName()+" Shortest path = null ! pour aller a "+reachable_from_ally.getLeft().getLocationId());
@@ -185,7 +221,9 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     }
                     for(String next_pos_ally : next_allies_pos){
                         // I have to choose an adjacent node of the stench
-                        Set<String> edges = this.myMap.getSerializableGraph().getEdges(next_pos_ally);
+                        Set<String> e = this.myMap.getSerializableGraph().getEdges(next_pos_ally);
+                        List<String> edges = new ArrayList<String>(e);
+                        Collections.shuffle(edges);
                         if (edges!= null){
                             for(String edge : edges){
                                 if (!edge.equals(myPosition.getLocationId()) && edges.size()>1 && edge != null){
@@ -195,6 +233,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                     if(path!= null && path.size() > 0){
                                         move = new gsLocation(path.get(0));
                                         moves.add(move);
+                                        path.remove(0);
+                                        if (path.size()>0){
+                                            ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                        }
+                                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                     }
                                 }                            
                             }
@@ -224,14 +267,38 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     }
 
                     Random r = new Random();
-                    while(!moved){  // Else, I'll do a random move
-                        move = (gsLocation) lobs.get(1+r.nextInt(lobs.size()-1)).getLeft();
-                        ((ExploreFSMAgent) this.myAgent).setNextMove(move);
-                        System.out.println(this.myAgent.getLocalName()+" I moved but it failed, I am trying a random move to " + move);
-                        moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
+
+                    int c = 1;
+                    
+                    while(!moved){
+                        if (c >= lobs.size()){
+                            move = (gsLocation)myPosition;
+                            ((ExploreFSMAgent) this.myAgent).setNextMove(move);
+							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
+						}
+						else{
+                            System.out.println(this.myAgent.getLocalName()+" I moved but it failed, I am trying a random move to " + move);
+                            int moveId=1+r.nextInt(lobs.size()-1);
+                            move = (gsLocation) lobs.get(moveId).getLeft();
+                            lobs.remove(moveId);
+                            ((ExploreFSMAgent) this.myAgent).setNextMove(move);
+                            moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
+                            c++;
+                        }
                     }
                 }
                 else{   // I dont smell anything and nobody is calling me
+
+                    if(pathToG!=null){
+                        move = new gsLocation(pathToG.get(0));
+                        moves.add(move);
+                        pathToG.remove(0);
+                        if (pathToG.size()>0){
+                            ((ExploreFSMAgent) myAgent).setPathToG(pathToG);
+                        }
+                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
+                    }
+
                     //Random move from the current position if no informations
                     String lastVisitedNode = ((ExploreFSMAgent) this.myAgent).getLastVisitedNode();
                     Random r = new Random();
@@ -241,17 +308,17 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     if (lastVisitedNode == null) {
                         moveId = 1 + r.nextInt(lobs.size() - 1);
                     } else {
-                        // Select a random move different from the last visited nodeCERTAIN CASES, VERIFY IT");
-
-                        System.out.println("I am "+myAgent.getName() +" and my last visited node is: " + lastVisitedNode);
+                        // Select a random move different from the last visited node
                         moveId = 1 + r.nextInt(lobs.size() - 1);
                         while (lobs.get(moveId).getLeft().getLocationId().equals(lastVisitedNode) && lobs.size() > 2){
                             moveId = 1 + r.nextInt(lobs.size() - 1);
-                            System.out.println("I am "+myAgent.getName() + "and I want to move to my last visited node that is "+lastVisitedNode);
                         }
                     }
 
                     move = (gsLocation) lobs.get(moveId).getLeft();
+                    moves.add(move);
+
+                    move = moves.get(0);
 
                     lastVisitedNode = myPosition.getLocationId();
                     ((ExploreFSMAgent) this.myAgent).setLastVisitedNode(lastVisitedNode);
@@ -259,12 +326,22 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
                     boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
                     
+                    int c = 1;
                     while(!moved){
-                        System.out.println("I am "+myAgent.getName() + " and I tried to move to "+move+" but it failed");
-                        moveId=1+r.nextInt(lobs.size()-1);
-                        move = (gsLocation) lobs.get(moveId).getLeft();
-                        ((ExploreFSMAgent) this.myAgent).setNextMove(move);
-                        moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
+                        if (c >= lobs.size()){
+                            move = (gsLocation)myPosition;
+                            ((ExploreFSMAgent) this.myAgent).setNextMove(move);
+							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
+						}
+						else{
+                            System.out.println("I am "+myAgent.getName() + " and I tried to move to "+move+" but it failed");
+                            moveId=1+r.nextInt(lobs.size()-1);
+                            move = (gsLocation) lobs.get(moveId).getLeft();
+                            lobs.remove(moveId);
+                            ((ExploreFSMAgent) this.myAgent).setNextMove(move);
+                            moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
+                            c++;
+                        }
                     }
                 }
             }
@@ -336,8 +413,19 @@ public class ChaseBehaviour extends SimpleBehaviour {
                             }
                         }
 
+                        if(pathToG!=null && move==null){
+                            move = new gsLocation(pathToG.get(0));
+                            pathToG.remove(0);
+                            if (pathToG.size()>0){
+                                ((ExploreFSMAgent) myAgent).setPathToG(pathToG);
+                            }
+                            else{((ExploreFSMAgent) myAgent).setPathToG(null);}
+                        }
+
                         if(move==null){
-                            Set<String> edges_golem = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                            Set<String> edges_g = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                            List<String> edges_golem = new ArrayList<String>(edges_g);
+                            Collections.shuffle(edges_golem);
                             System.out.println(myAgent.getLocalName()+" edge : "+edges_golem + " are the edges around the GOLEM : "+golemPosition.getLocationId());
                             if(edges_golem != null){
                                 for(String edge : edges_golem){
@@ -347,12 +435,28 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                         System.out.println(myAgent.getLocalName()+" I got a PATH to the GOLEM = "+path);
                                         if(path!= null && path.size() > 0){
                                             move = new gsLocation(path.get(0));
+                                            path.remove(0);
+                                            if (path.size()>0){
+                                                ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                            }
+                                            else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                             break;
                                         }
                                     }                            
                                 }
                             }
                         }
+                    }
+
+                    // SUIVRE PATH (ATTENTION VERIF PATH TJR POSSIBLE ?)
+
+                    if(pathToG!=null && move==null){
+                        move = new gsLocation(pathToG.get(0));
+                        pathToG.remove(0);
+                        if (pathToG.size()>0){
+                            ((ExploreFSMAgent) myAgent).setPathToG(pathToG);
+                        }
+                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                     }
 
                     if(move==null){
@@ -385,6 +489,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                         if (path!= null && path.size() > 0){
                                             System.out.println(myAgent.getLocalName()+" found a path = "+path+" to a stench that an ally smelled"+reachable_from_ally.getLeft().getLocationId());
                                             move = new gsLocation(path.get(0));
+                                            path.remove(0);
+                                            if (path.size()>0){
+                                                ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                            }
+                                            else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                             break;
                                         }
                                     }
@@ -396,7 +505,9 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     if(move==null){
                         for(gsLocation stench: stenches){
                             // I have to choose an adjacent node of my stench
-                            Set<String> edges = this.myMap.getSerializableGraph().getEdges(stench.getLocationId());
+                            Set<String> e = this.myMap.getSerializableGraph().getEdges(stench.getLocationId());
+                            List<String> edges = new ArrayList<String>(e);
+                            Collections.shuffle(edges);
                             if (edges!=null){
                                 for(String edge : edges){
                                     if (!edge.equals(myPosition.getLocationId()) && edges.size()>1){
@@ -404,6 +515,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                         if(path!= null && path.size() > 0){
                                             System.out.println(myAgent.getLocalName()+" found a path = "+path+" to an edge of my stench "+ edge);
                                             move = new gsLocation(path.get(0));
+                                            path.remove(0);
+                                            if (path.size()>0){
+                                                ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                            }
+                                            else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                             break;
                                         }
                                     }                            
@@ -413,6 +529,16 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     }
                 }
                 else{   // I didnt received any information so I just go to the stench I am smelling
+
+                    if(pathToG!=null){
+                        move = new gsLocation(pathToG.get(0));
+                        pathToG.remove(0);
+                        if (pathToG.size()>0){
+                            ((ExploreFSMAgent) myAgent).setPathToG(pathToG);
+                        }
+                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
+                    }
+
                     List<gsLocation> stenches_copy = new ArrayList<gsLocation>();
                     stenches_copy.addAll(stenches);
                     for(int i=random.nextInt(0,stenches_copy.size()); stenches_copy.size()>1; i=random.nextInt(0,stenches_copy.size())){

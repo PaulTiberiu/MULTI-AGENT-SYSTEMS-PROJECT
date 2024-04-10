@@ -76,7 +76,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 		}
 
 		try {
-			Thread.sleep(10);                 //1000 milliseconds is one second.
+			Thread.sleep(500);                 //1000 milliseconds is one second.
 		} catch(InterruptedException ex) {
 			Thread.currentThread().interrupt();
 		}
@@ -190,12 +190,12 @@ public class ExploBehaviour extends SimpleBehaviour {
 						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node");
 						if (c >= lobs.size()){
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(myPosition);
+							myNextNode = myPosition.getLocationId();
 						}
 						else{
 							Couple<Location, List<Couple<Observation, Integer>>> obs = lobs.get(c);
 							if(obs.getLeft().getLocationId().compareTo(myNextNode) != 0 && (obs.getLeft().getLocationId()).compareTo(myPosition.getLocationId()) != 0){
 								myNextNode = obs.getLeft().getLocationId();
-								break;
 							}
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 							c++;

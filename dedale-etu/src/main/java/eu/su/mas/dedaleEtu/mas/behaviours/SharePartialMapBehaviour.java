@@ -59,7 +59,7 @@ public class SharePartialMapBehaviour extends SimpleBehaviour {
 
 	@Override
  	public void action() {
-		((ExploreFSMAgent)this.myAgent).addIteration();
+		// ((ExploreFSMAgent)this.myAgent).addIteration();
 		myNextNode = null;
 		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
 		// ENVOIE DES INFOS : NOM, PROCHAIN NOEUD, CARTE APRES AVOIR RECU UN ACK
