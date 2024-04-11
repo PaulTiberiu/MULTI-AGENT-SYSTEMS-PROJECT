@@ -31,6 +31,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
     private MapRepresentation myMap;
     private int exitValue = 0;
     private gsLocation golemPosition = null;
+    private boolean block = false;
     //private SerializableSimpleGraph<String, MapAttribute> sg;
 
     /**
@@ -46,10 +47,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
     @Override
     public void action() {
         try {
-            Thread.sleep(700);
+            Thread.sleep(500);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        golemPosition = null;
 
         myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
         exitValue = 0;
@@ -82,7 +84,13 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 try {
                     ChaseInfos chaseInfos = (ChaseInfos) infosRecept.getContentObject();
                     sendersInfos.add(new Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>(chaseInfos.getAgentId(), new Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>(chaseInfos.getNextPosition(), chaseInfos.getobs())));
-                    golemPosition = chaseInfos.getGolemPosition();
+                    if(golemPosition == null || golemPosition.equals((gsLocation)myPosition)){  // LISTE DE GOLEM POSITIONS PUIS TRAITER QUELLE EST LA BONNE
+                        golemPosition = chaseInfos.getGolemPosition();
+                        ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
+                    }
+                    if(block == false){
+                        block = chaseInfos.isBlock();
+                    }
                 } catch (UnreadableException e) {
                     e.printStackTrace();
                 }
@@ -99,7 +107,14 @@ public class ChaseBehaviour extends SimpleBehaviour {
             
             if(golemPosition==null){
                 golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
+                ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
                 System.out.println("I remember the position of the golem he is at : "+golemPosition);
+            }
+
+            if(block == true || ((ExploreFSMAgent) myAgent).isBlock()==true){  // We blocked the golem !
+                ((ExploreFSMAgent) myAgent).setBlock(block);
+                exitValue = 3;
+                return;
             }
 
             //List of observable from the agent's current position
@@ -403,6 +418,28 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         golemPosition = null;
                     }
 
+                    // DO WE HAVE BLOCKED THE GOLEM ?
+
+                    if(golemPosition!=null){
+                        Set<String> g_edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                        if(g_edges!=null){
+                            boolean block = false;
+                            for (String g_edge : g_edges){
+                                if (!g_edge.equals(myPosition.getLocationId()) && !allies_pos.contains(g_edge)){
+                                    block = false;
+                                    break;
+                                }
+                                else{
+                                    block = true;
+                                }
+                            }
+                            if (block == true){
+                                System.out.println("\n\n\n ---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
+                                ((ExploreFSMAgent) myAgent).setBlock(block);
+                            }
+                        }
+                    }
+
                     if (golemPosition != null){
                         System.out.println(myAgent.getName()+" Je connais la position du golem = "+golemPosition);
                         for(Couple<Location, List<Couple<Observation, Integer>>> lobs_position : lobs){
@@ -448,7 +485,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         }
                     }
 
-                    // SUIVRE PATH (ATTENTION VERIF PATH TJR POSSIBLE ?)
+                    // SUIVRE PATH
 
                     if(pathToG!=null && move==null){
                         move = new gsLocation(pathToG.get(0));

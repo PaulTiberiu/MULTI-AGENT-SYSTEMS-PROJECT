@@ -14,12 +14,14 @@ public class ChaseInfos implements Serializable {
     private String agentId;
     private String nextPosition;
     private gsLocation golemPosition;
+    private boolean block;
     private List<Couple<Location, List<Couple<Observation, Integer>>>> obs;
 
-    public ChaseInfos(String Name, String nextPosition, gsLocation golemPosition, List<Couple<Location, List<Couple<Observation, Integer>>>> obs) {
+    public ChaseInfos(String Name, String nextPosition, gsLocation golemPosition, boolean block, List<Couple<Location, List<Couple<Observation, Integer>>>> obs) {
         this.agentId = Name;
         this.nextPosition = nextPosition;
         this.golemPosition = golemPosition;
+        this.block = block;
         this.obs = obs;
     }
 
@@ -46,6 +48,14 @@ public class ChaseInfos implements Serializable {
 
     public void setGolemPosition(gsLocation golemPosition) {
         this.golemPosition = golemPosition;
+    }
+
+    public boolean isBlock() {
+        return block;
+    }
+
+    public void setBlock(boolean block) {
+        this.block = block;
     }
 
     public List<Couple<Location, List<Couple<Observation, Integer>>>> getobs() {
