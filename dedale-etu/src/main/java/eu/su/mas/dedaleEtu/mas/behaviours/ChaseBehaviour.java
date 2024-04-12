@@ -78,16 +78,15 @@ public class ChaseBehaviour extends SimpleBehaviour {
             ACLMessage infosRecept=this.myAgent.receive(msgTemplate);
 
             sendersInfos = new ArrayList<Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>>();
+            ArrayList<gsLocation> golemPositions = new ArrayList<gsLocation>();
 
             while(infosRecept!=null){
                 System.out.println("I am "+myAgent.getName()+" and I received "+infosRecept.getSender().getLocalName()+"'s INFORMATIONS");
                 try {
                     ChaseInfos chaseInfos = (ChaseInfos) infosRecept.getContentObject();
                     sendersInfos.add(new Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>(chaseInfos.getAgentId(), new Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>(chaseInfos.getNextPosition(), chaseInfos.getobs())));
-                    if(golemPosition == null || golemPosition.equals((gsLocation)myPosition)){  // LISTE DE GOLEM POSITIONS PUIS TRAITER QUELLE EST LA BONNE
-                        golemPosition = chaseInfos.getGolemPosition();
-                        ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
-                    }
+                    // LISTE DE GOLEM POSITIONS PUIS TRAITER QUELLE EST LA BONNE VIA ALLIES POS ETC
+                    golemPositions.add(chaseInfos.getGolemPosition());
                     if(block == false){
                         block = chaseInfos.isBlock();
                     }
@@ -95,6 +94,18 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     e.printStackTrace();
                 }
                 infosRecept=this.myAgent.receive(msgTemplate);
+            }
+
+            if(sendersInfos.size()>0){
+                ArrayList<String> allies_pos = new ArrayList<String>();
+                for(int i=0; i<sendersInfos.size(); i++){
+                    allies_pos.add(sendersInfos.get(i).getRight().getRight().get(0).getLeft().getLocationId());
+                }
+                for(gsLocation golemP : golemPositions){
+                    if(golemP!=null && golemPosition==null && !allies_pos.contains(golemP.getLocationId()) && !((gsLocation) myPosition).equals(golemP)){
+                        golemPosition = golemP;
+                    }
+                }
             }
             
 
@@ -109,6 +120,9 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
                 ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
                 System.out.println("I remember the position of the golem he is at : "+golemPosition);
+            }
+            else{
+                ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
             }
 
             if(block == true || ((ExploreFSMAgent) myAgent).isBlock()==true){  // We blocked the golem !
@@ -485,7 +499,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         }
                     }
 
-                    // SUIVRE PATH
+                    // Follow the path
 
                     if(pathToG!=null && move==null){
                         move = new gsLocation(pathToG.get(0));
@@ -599,7 +613,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
                 ((ExploreFSMAgent) this.myAgent).setNextMove(move);
 
-                boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);   // Si je bouge pas alors il y a le golem
+                boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);   // If I don't move it means it is the golem
 
                 if (!moved){
                     ((ExploreFSMAgent) this.myAgent).setNextMove((gsLocation) myPosition);

@@ -8,6 +8,7 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 import eu.su.mas.dedaleEtu.mas.behaviours.AckSendBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.BlockBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ChaseAckBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploBehaviour;
 import jade.core.behaviours.FSMBehaviour;
@@ -17,7 +18,6 @@ import eu.su.mas.dedaleEtu.mas.behaviours.SharePartialMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ToCornerBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ChaseBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-// import eu.su.mas.dedaleEtu.mas.knowledge.NodeSharingManager;
 import jade.core.behaviours.Behaviour;
 
 
@@ -28,7 +28,6 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private Integer iteration = 0;
 	private List<String> list_agentNames;
 	private List<String> AgentsTosend;
-	private List<String> AgentsTosendInfos;
 	private HashMap<String, ArrayList<String>> nodesToShare; // key: agent name, value: list of IDs of the nodes to be shared next time we meet this agent
 	private HashMap<String, ArrayList<String>> nodesShared;
 	private String lastVisitedNode; // Field to store the last visited node
@@ -52,6 +51,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private static final String chaseAck = "chaseAck";
 	private static final String shareInfos = "shareInfos";
 	private static final String toCorner = "toCorner";
+	private static final String end = "end";
 
 	/**
 	 * This method is automatically called when "agent".start() is executed.
@@ -99,7 +99,8 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerState(new ChaseBehaviour(this, list_agentNames), chase);
 		fsm.registerState(new ChaseAckBehaviour(this), chaseAck);
 		fsm.registerState(new ShareInfosBehaviour(this), shareInfos);
-		fsm.registerState(new ToCornerBehaviour(this), toCorner);
+		fsm.registerState(new ToCornerBehaviour(this, list_agentNames), toCorner);
+		fsm.registerState(new BlockBehaviour(this, list_agentNames), end);
 
 		/************************************************
 		 * 
@@ -123,7 +124,9 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(chase, toCorner, 3);
 		fsm.registerDefaultTransition(chaseAck, shareInfos);
 		fsm.registerDefaultTransition(shareInfos, chase);
-		fsm.registerDefaultTransition(toCorner, toCorner);
+		fsm.registerTransition(toCorner, toCorner, 0);
+		fsm.registerTransition(toCorner, chase, 1);
+		fsm.registerTransition(toCorner, end, 2);
 
 		/************************************************
 		 * 
