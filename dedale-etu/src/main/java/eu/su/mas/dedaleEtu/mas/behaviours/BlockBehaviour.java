@@ -51,9 +51,6 @@ public class BlockBehaviour extends SimpleBehaviour {
 	private MapRepresentation myMap;
 	private int exitValue = 0;
     private List<String> receivers;
-
-
-
 /**
  * 
  * @param myagent reference to the agent we are adding this behaviour to
@@ -64,7 +61,8 @@ public class BlockBehaviour extends SimpleBehaviour {
 	}
 
 	@Override
-	public void action() {        
+	public void action() {
+        gsLocation golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.setProtocol("LEAVE");
         msg.setSender(this.myAgent.getAID());
@@ -74,7 +72,7 @@ public class BlockBehaviour extends SimpleBehaviour {
         }
         try {			
             // Chase another Golem		
-            msg.setContentObject("Chase another Golem");
+            msg.setContentObject(golemPosition);
         } catch (IOException e) {
             e.printStackTrace();
         }

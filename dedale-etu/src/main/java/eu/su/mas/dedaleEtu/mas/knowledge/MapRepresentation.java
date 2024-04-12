@@ -490,6 +490,9 @@ public class MapRepresentation implements Serializable {
 				.findAny()).isPresent();
 	}
 
+	public Node removeNode(String node){
+		return this.g.removeNode(node);
+	}
 
 
 

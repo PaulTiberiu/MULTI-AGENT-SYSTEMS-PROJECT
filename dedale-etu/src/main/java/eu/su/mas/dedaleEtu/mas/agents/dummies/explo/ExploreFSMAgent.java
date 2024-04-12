@@ -127,6 +127,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		fsm.registerTransition(toCorner, toCorner, 0);
 		fsm.registerTransition(toCorner, chase, 1);
 		fsm.registerTransition(toCorner, end, 2);
+		fsm.registerDefaultTransition(end, end);
 
 		/************************************************
 		 * 
@@ -305,6 +306,10 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	
 	public void setPathToCorner(List<String> shortest_path){
 		this.pathToCorner = shortest_path;
+	}
+
+	public List<String> getPathToCorner(){
+		return this.pathToCorner;
 	}
 
 

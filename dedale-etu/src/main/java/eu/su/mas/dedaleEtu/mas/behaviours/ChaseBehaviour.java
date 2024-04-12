@@ -125,7 +125,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
             }
 
-            if(block == true || ((ExploreFSMAgent) myAgent).isBlock()==true){  // We blocked the golem !
+            if(block == true && ((ExploreFSMAgent) myAgent).isBlock()==true){  // We blocked the golem ! FAUT IL METTRE UN && OU UN || ?
                 ((ExploreFSMAgent) myAgent).setBlock(block);
                 exitValue = 3;
                 return;
@@ -449,6 +449,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
                             }
                             if (block == true){
                                 System.out.println("\n\n\n ---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
+                                try{
+                                    Thread.sleep(1000);
+                                }catch(InterruptedException e){
+                                    e.printStackTrace();
+                                }
                                 ((ExploreFSMAgent) myAgent).setBlock(block);
                             }
                         }
