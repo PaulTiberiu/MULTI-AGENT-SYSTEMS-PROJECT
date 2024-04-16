@@ -24,6 +24,7 @@ import org.graphstream.ui.view.Viewer;
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
 
+
 /**
  * This simple topology representation only deals with the graph, not its content.</br>
  * The knowledge representation is not well written (at all), it is just given as a minimal example.</br>
@@ -458,27 +459,27 @@ public class MapRepresentation implements Serializable {
 
 
 	// Partial Graph of nodes containing stench
-	public MapRepresentation getStenchMap(ArrayList<String> StenchNodes){
-		MapRepresentation stenchMap = new MapRepresentation(false);
-		if (StenchNodes == null) {
-			return stenchMap;
-		}
+	// public MapRepresentation getStenchMap(ArrayList<String> StenchNodes){
+	// 	MapRepresentation stenchMap = new MapRepresentation(false);
+	// 	if (StenchNodes == null) {
+	// 		return stenchMap;
+	// 	}
 		
-		// Adding the nodes
-		for (String nodeId: StenchNodes) {
-			stenchMap.g.addNode(nodeId);
-		}
-		// Adding the edges
-		for (String nodeId: StenchNodes) {
-			Node n = this.g.getNode(nodeId);
-			for (Object edge: n.edges().toArray()) {
-				String node0 = ((Edge) edge).getNode0().getId();
-				String node1 = ((Edge) edge).getNode1().getId();
-				stenchMap.addEdge(node0, node1);
-			}	
-		}
-		return stenchMap;    
-	}
+	// 	// Adding the nodes
+	// 	for (String nodeId: StenchNodes) {
+	// 		stenchMap.g.addNode(nodeId);
+	// 	}
+	// 	// Adding the edges
+	// 	for (String nodeId: StenchNodes) {
+	// 		Node n = this.g.getNode(nodeId);
+	// 		for (Object edge: n.edges().toArray()) {
+	// 			String node0 = ((Edge) edge).getNode0().getId();
+	// 			String node1 = ((Edge) edge).getNode1().getId();
+	// 			stenchMap.addEdge(node0, node1);
+	// 		}	
+	// 	}
+	// 	return stenchMap;    
+	// }
 
 	/**
 	 * 
@@ -494,6 +495,13 @@ public class MapRepresentation implements Serializable {
 		return this.g.removeNode(node);
 	}
 
+	public Node getNode(String node){
+		return this.g.getNode(node);
+	}
+
+	public void removeEdge(Edge edge){
+		this.g.removeEdge(edge);
+	}
 
 
 }

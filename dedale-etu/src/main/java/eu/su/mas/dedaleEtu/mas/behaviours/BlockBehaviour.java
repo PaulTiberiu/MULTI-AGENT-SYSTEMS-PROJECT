@@ -62,6 +62,11 @@ public class BlockBehaviour extends SimpleBehaviour {
 
 	@Override
 	public void action() {
+        try {
+            Thread.sleep(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         gsLocation golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.setProtocol("LEAVE");
@@ -79,7 +84,7 @@ public class BlockBehaviour extends SimpleBehaviour {
         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
         
         try {
-            Thread.sleep(10000);    // 10 seconds
+            Thread.sleep(9000);    // 10 seconds
         } catch (Exception e) {
             e.printStackTrace();
         }

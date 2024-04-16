@@ -45,7 +45,7 @@
   },
   { 
     "agentType":"wumpus",
-    "agentName": "G2",
+    "agentName": "G1",
     "communicationRange": 0,
     "initialLocation": "5_5",
     "backPackCapacityGold": 200,
@@ -56,7 +56,7 @@
   },
   { 
     "agentType":"wumpus",
-    "agentName": "G1",
+    "agentName": "G2",
     "communicationRange": 0,
     "initialLocation": "0_0",
     "backPackCapacityGold": 200,

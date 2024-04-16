@@ -81,7 +81,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
             ArrayList<gsLocation> golemPositions = new ArrayList<gsLocation>();
 
             while(infosRecept!=null){
-                System.out.println("I am "+myAgent.getName()+" and I received "+infosRecept.getSender().getLocalName()+"'s INFORMATIONS");
+                System.out.println("I am "+myAgent.getLocalName()+" and I received "+infosRecept.getSender().getLocalName()+"'s INFORMATIONS");
                 try {
                     ChaseInfos chaseInfos = (ChaseInfos) infosRecept.getContentObject();
                     sendersInfos.add(new Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>(chaseInfos.getAgentId(), new Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>(chaseInfos.getNextPosition(), chaseInfos.getobs())));
@@ -106,6 +106,12 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         golemPosition = golemP;
                     }
                 }
+                for(Couple<String, Couple<String, List<Couple<Location, List<Couple<Observation, Integer>>>>>> infos : sendersInfos){
+                    if(infos.getRight().getLeft().compareTo(infos.getRight().getRight().get(0).getLeft().getLocationId())!=0){
+                        System.out.println("QLQ UN BOUGE DONC PAS DE BLOCK!");
+                        block = false;
+                    }
+                }
             }
             
 
@@ -125,10 +131,14 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
             }
 
-            if(block == true && ((ExploreFSMAgent) myAgent).isBlock()==true){  // We blocked the golem ! FAUT IL METTRE UN && OU UN || ?
+            if((block==true && ((ExploreFSMAgent) myAgent).isBlock()==true) && golemPosition!=null){  // We blocked the golem ! FAUT IL METTRE UN && OU UN || ?
                 ((ExploreFSMAgent) myAgent).setBlock(block);
                 exitValue = 3;
+                System.out.println("\n\n\n "+myAgent.getLocalName()+"---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
                 return;
+            }
+            else{
+                ((ExploreFSMAgent) myAgent).setBlock(false);
             }
 
             //List of observable from the agent's current position
@@ -243,7 +253,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                         else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                         continue;
                                     }
-                                    System.out.println("I am "+this.myAgent.getLocalName()+" Shortest path = null ! pour aller a "+reachable_from_ally.getLeft().getLocationId());
+                                    System.out.println("I am "+myAgent.getLocalName()+" Shortest path = null ! pour aller a "+reachable_from_ally.getLeft().getLocationId());
                                 }
                             }
                         }
@@ -363,7 +373,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
 						}
 						else{
-                            System.out.println("I am "+myAgent.getName() + " and I tried to move to "+move+" but it failed");
+                            System.out.println("I am "+myAgent.getLocalName() + " and I tried to move to "+move+" but it failed");
                             moveId=1+r.nextInt(lobs.size()-1);
                             move = (gsLocation) lobs.get(moveId).getLeft();
                             lobs.remove(moveId);
@@ -376,7 +386,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
             }
             else{   // There is a Stench near me and I have to chose my next move and send my infos
 
-                System.out.println("I am "+myAgent.getName()+" and I am sending a PING");
+                System.out.println("I am "+myAgent.getLocalName()+" and I am sending a PING");
                 ACLMessage ping = new ACLMessage(ACLMessage.PROPOSE);
                 ping.setProtocol("PING");
                 ping.setSender(this.myAgent.getAID());
@@ -391,7 +401,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
                 try {
-                    Thread.sleep(300);
+                    Thread.sleep(100);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -402,7 +412,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 ACLMessage ackRecept=this.myAgent.receive(msgTemplate);
 
                 while(ackRecept!=null){
-                    System.out.println("I am "+myAgent.getName()+" and I received an ACK from "+ackRecept.getSender().getLocalName());
+                    System.out.println("I am "+myAgent.getLocalName()+" and I received an ACK from "+ackRecept.getSender().getLocalName());
                     ((ExploreFSMAgent)this.myAgent).addAgentsTosend(ackRecept.getSender().getLocalName());
                     ackRecept = this.myAgent.receive(msgTemplate);
                     if (exitValue != 1){
@@ -448,19 +458,14 @@ public class ChaseBehaviour extends SimpleBehaviour {
                                 }
                             }
                             if (block == true){
-                                System.out.println("\n\n\n ---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
-                                try{
-                                    Thread.sleep(1000);
-                                }catch(InterruptedException e){
-                                    e.printStackTrace();
-                                }
+                                System.out.println(myAgent.getLocalName()+" WE BLOCKED THE GOLEM");
                                 ((ExploreFSMAgent) myAgent).setBlock(block);
                             }
                         }
                     }
 
                     if (golemPosition != null){
-                        System.out.println(myAgent.getName()+" Je connais la position du golem = "+golemPosition);
+                        System.out.println(myAgent.getLocalName()+" Je connais la position du golem = "+golemPosition);
                         for(Couple<Location, List<Couple<Observation, Integer>>> lobs_position : lobs){
                             if (golemPosition.getLocationId().equals(lobs_position.getLeft().getLocationId())){
                                 move = (gsLocation) golemPosition;
@@ -480,10 +485,10 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
                         if(move==null){
                             Set<String> edges_g = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
-                            List<String> edges_golem = new ArrayList<String>(edges_g);
-                            Collections.shuffle(edges_golem);
-                            System.out.println(myAgent.getLocalName()+" edge : "+edges_golem + " are the edges around the GOLEM : "+golemPosition.getLocationId());
-                            if(edges_golem != null){
+                            if(edges_g != null){
+                                List<String> edges_golem = new ArrayList<String>(edges_g);
+                                Collections.shuffle(edges_golem);
+                                System.out.println(myAgent.getLocalName()+" edge : "+edges_golem + " are the edges around the GOLEM : "+golemPosition.getLocationId());
                                 for(String edge : edges_golem){
                                     System.out.println(myAgent.getLocalName()+" edge : "+edge + " is around the GOLEM");
                                     if (!edge.equals(myPosition.getLocationId()) && edges_golem.size()>1 && !next_allies_pos.contains(edge)){

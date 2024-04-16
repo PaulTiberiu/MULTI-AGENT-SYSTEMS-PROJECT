@@ -138,7 +138,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 					//4) select next move.
 					if (myNextNode==null){
 						myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
-						System.out.println("I am "+this.myAgent.getName()+", my next node was null and now is "+myNextNode+", my position is "+myPosition);
+						System.out.println("I am "+this.myAgent.getLocalName()+", my next node was null and now is "+myNextNode+", my position is "+myPosition);
 					}
 					
 					
@@ -149,7 +149,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 					ACLMessage infoRecept=this.myAgent.receive(msgTemplate);
 
 					if(infoRecept!=null){
-						System.out.println("I am "+this.myAgent.getName()+" and I received a partial map from "+infoRecept.getSender().getName());
+						System.out.println("I am "+this.myAgent.getLocalName()+" and I received a partial map from "+infoRecept.getSender().getLocalName());
 						AgentInfo msginfo = null;
 						try {
 							msginfo = (AgentInfo)infoRecept.getContentObject();
@@ -171,23 +171,25 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 						String except = infoRecept.getSender().getLocalName();
 						((ExploreFSMAgent) this.myAgent).addNodesToShare(nodeList, except);
-						
-						if (this.myNextNode == nextPositionSender){ // Noeud prioritaire, cas de conflit de next node avec un autre agent 
-							if (Integer.parseInt(agentIdSender) < Integer.parseInt(this.myAgent.getLocalName())){
-								this.myMap.addNode(nextPositionSender, MapAttribute.closed);
-								myNextNode = this.myMap.getShortestPathToClosestOpenNode(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId()).get(0);//getShortestPath(myPosition,this.openNodes.get(0)).get(0);
-								this.myMap.addNode(nextPositionSender, MapAttribute.open);
-							}
-						}
+
+						// if (this.myNextNode!=null && nextPositionSender!=null && this.myNextNode.compareTo(nextPositionSender)==0){ // Noeud prioritaire, cas de conflit de next node avec un autre agent
+						// 	if (agentIdSender.compareTo(this.myAgent.getLocalName())>0){
+						// 		this.myMap.addNode(nextPositionSender, MapAttribute.closed);
+						// 		List<String> path = this.myMap.getShortestPathToClosestOpenNode(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId());
+						// 		if(path!=null && path.size() > 0)
+						// 			myNextNode = path.get(0);
+						// 		this.myMap.addNode(nextPositionSender, MapAttribute.open);
+						// 	}
+						// }
 					}
-					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I will try to move to "+myNextNode);
+					System.out.println("I am "+this.myAgent.getLocalName()+", my position is "+myPosition+" and I will try to move to "+myNextNode);
 					cmpt++;
 					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
 
 					int c = 1;
 
 					while(!moved){
-						System.out.println("I am "+this.myAgent.getName()+" and I am searching for another node");
+						System.out.println("I am "+this.myAgent.getLocalName()+" and I am searching for another node");
 						if (c >= lobs.size()){
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(myPosition);
 							myNextNode = myPosition.getLocationId();
@@ -201,7 +203,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 							c++;
 						}
 					}
-					System.out.println("I am "+this.myAgent.getName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
+					System.out.println("I am "+this.myAgent.getLocalName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
 				}
 			}
 		}
@@ -219,16 +221,16 @@ public class ExploBehaviour extends SimpleBehaviour {
 	}
 
 	public void chase_mode(){
-		System.out.println(this.myAgent.getName()+" ended exploration in "+((ExploreFSMAgent)this.myAgent).getIteration()+" iterations");
+		System.out.println(this.myAgent.getLocalName()+" ended exploration in "+((ExploreFSMAgent)this.myAgent).getIteration()+" iterations");
 
 		String repertoireActuel = System.getProperty("user.dir");
 		try (FileWriter writer = new FileWriter(repertoireActuel+"/resources/nbIterations.txt", true)) {
-			writer.write(myAgent.getName()+" : "+((ExploreFSMAgent)this.myAgent).getIteration()+"\n");
+			writer.write(myAgent.getLocalName()+" : "+((ExploreFSMAgent)this.myAgent).getIteration()+"\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		System.out.println(this.myAgent.getName()+" starts to chase golem");
+		System.out.println(this.myAgent.getLocalName()+" starts to chase golem");
 	}	
 
 }

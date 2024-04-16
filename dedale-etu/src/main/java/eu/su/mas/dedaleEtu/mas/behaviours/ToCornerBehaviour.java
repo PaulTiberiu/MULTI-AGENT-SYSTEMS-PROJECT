@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,6 +28,10 @@ import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
+import java.util.Collections;
+
 
 
 
@@ -55,7 +60,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 	private int exitValue = 0;
     private List<String> receivers;
 
-
+    private String leader;
 
 /**
  * 
@@ -69,7 +74,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 	@Override
 	public void action() {
         try {
-            Thread.sleep(1000);
+            Thread.sleep(5000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,35 +91,70 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
 		if(msgRecept!=null){
             // If I receive a message to chase another golem, and I am not adjacent to the golem, I am passing to chaseBehaviour
+            System.out.println("THEY TOLD ME TO LEAVE !!");
             exitValue = 1;
             ((ExploreFSMAgent) myAgent).setBlock(false);
             
             Set<String> edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
             List<String> removed = new ArrayList<String>();
-            for(String edge : edges){
-                removed.add(edge);
-                this.myMap.removeNode(edge);
+            if(edges!=null && edges.size()>0){
+                for(String edge : edges){
+                    removed.add(edge);
+                    List<Edge> links = this.myMap.getNode(edge).edges().collect(Collectors.toList());
+                    for(Edge link : links){
+                        this.myMap.removeEdge(link);
+                    }
+                    this.myMap.removeNode(edge);
+                }
             }
             removed.add(golemPosition.getLocationId());
             this.myMap.removeNode(golemPosition.getLocationId());
-            System.out.println("Nodes removed = "+removed);
+            System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
+            ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
+            System.out.println(myAgent.getLocalName()+" ON A BLOQUE LE GOLEM GG JE PASSE EN CHASE POUR CHASSER UN AUTRE\n");
+            try {
+                Thread.sleep(1000000);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return;
+        }
+        
+        leader = myAgent.getLocalName();
+        for (String agentName : receivers) {
+            if(agentName.compareTo(leader) < 0) {
+                leader = agentName;
+            }
+        }
+
+        MessageTemplate received_path_template=MessageTemplate.and(
+			MessageTemplate.MatchProtocol("PATH"),
+			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage received_path_leader=this.myAgent.receive(received_path_template);
+
+        if(received_path_leader != null){
+            try {
+                PathInfo pathInfo = (PathInfo) received_path_leader.getContentObject();
+                System.out.println(myAgent.getLocalName()+" received path from leader = "+pathInfo.getPath());
+                ((ExploreFSMAgent) this.myAgent).setPathToCorner(pathInfo.getPath());
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
         }
 
         // I need to find the shortest path to a corner
         List<String> small_arity_nodes = this.myMap.getNodesWithSmallestArity();
         int length = Integer.MAX_VALUE;
+        List<Couple<Location,List<Couple<Observation,Integer>>>> lobs = ((AbstractDedaleAgent)this.myAgent).observe();//myPosition
 
         System.out.println(myAgent.getLocalName()+" small_arity_nodes = "+small_arity_nodes);
-
-        List<String> shortest_path = null;
 
         for (String node : small_arity_nodes) {
             // Check if golem is blocked already on a smallest arity node
             if(node.equals(golemPosition.getLocationId())) {
                 System.out.println("Golem is already blocked on a smallest arity node");
                 // If I am adjacent to the golem, send a message to the others to chase another golem
-                List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+                
                 System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
                 // Then, if I am adjacent to the Golem, pass to BlockBehaviour
@@ -128,40 +168,24 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 }
             }
 
-            shortest_path = this.myMap.getShortestPath(golemPosition.getLocationId(), node);
-            System.out.println(myAgent.getLocalName() + " shortest_path from "+golemPosition+" to " + node + " = "+shortest_path);
-            System.out.println(myAgent.getLocalName() + " length = "+shortest_path.size());
-            if(length > shortest_path.size()) {
-                length = shortest_path.size();
-                ((ExploreFSMAgent) this.myAgent).setPathToCorner(shortest_path);
-            }
-
-        }
-        
-        System.out.println(myAgent.getLocalName() + " finally chose the shortest path = "+ ((ExploreFSMAgent) this.myAgent).getPathToCorner());
-
-        // 1. We need to choose a leader that will choose the shortest path to the corner, then will send it to the others
-
-        //1.2 Receive the message containing the leader
-        MessageTemplate msgTemp=MessageTemplate.and(
-            MessageTemplate.MatchProtocol("LEADER"),
-            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-        ACLMessage recept_leader=this.myAgent.receive(msgTemp);
-
-        String receivedLeader = null;
-        if(recept_leader != null){
-            try {
-                receivedLeader = (String) recept_leader.getContentObject();
-            } catch (UnreadableException e) {
-                e.printStackTrace();
+            if(leader.compareTo(myAgent.getLocalName())==0){
+                List<String> shortest_path = this.myMap.getShortestPath(golemPosition.getLocationId(), node);
+                // System.out.println(myAgent.getLocalName() + " shortest_path from "+golemPosition+" to " + node + " = "+shortest_path);
+                // System.out.println(myAgent.getLocalName() + " length = "+shortest_path.size());
+                if(length > shortest_path.size()) {
+                    length = shortest_path.size();
+                    ((ExploreFSMAgent) this.myAgent).setPathToCorner(shortest_path);
+                }
             }
         }
 
-        if(receivedLeader != null && receivedLeader.equals(this.myAgent.getLocalName())) {
-            System.out.println(myAgent.getLocalName()+" I am the leader");
+        if(leader != null && leader.compareTo(this.myAgent.getLocalName())==0) {
             // I am the leader, I need to send to everybody my shortest path to a corner
 
             List<String> pathToCorner = ((ExploreFSMAgent) this.myAgent).getPathToCorner();
+
+            System.out.println(myAgent.getLocalName()+" I am the leader and the shortest path is: "+pathToCorner);
+
 
             ACLMessage msg_path = new ACLMessage(ACLMessage.INFORM);
             msg_path.setProtocol("PATH");
@@ -180,30 +204,115 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             ((AbstractDedaleAgent)this.myAgent).sendMessage(msg_path);
         }
 
-        // 1.1 Choosing the leader based on the shortest name and sending the ping
-        String my_name = this.myAgent.getLocalName();
-        String leader = null;
-        for (String agentName : receivers) {
-            if(agentName.compareTo(my_name) < 0) {
-                leader = agentName;
+        List<String> pathToCorner = ((ExploreFSMAgent) myAgent).getPathToCorner();
+
+        // 1. notre agent se situe sur le path vers le corner
+        // 2. il doit bouger sur un neoud qui fait partie du paath vers le corner
+        // 3. avant de bouger, regarder l'arite du noeud actuel de notre agent
+        // 4. dire a nos allies de venir bloquer les edges du noeud de l'agent actuel
+        // 5. ensuite, quand les edges sont bloques, on peut dire a l'agent de faire son mouvement vers le noeud appartenant au path.
+        // 6. si ce neoud a une tres grande arite (> nombre d'agents), on l'enleve du path et on recalcule le path.
+        //     -> mais si c'est la seule possibilite pour aller au noeud de plus petite arite, alors on y va quand meme et si le golem fuit alors on passe dans chase.
+            
+        // obs: si le nombre d'agents nous permet, on n'est pas obligees de bloquer le golem sur un noeud de plus petite arite (plus petite arite + 1 est egalement bon)
+
+        // on itere
+
+        if(pathToCorner!=null){
+
+            // To chose the node to move to, we need to communicate to make sure we will block the golem on the next node
+            // To do so, we will take a node at the edge of the next position in the path and we will check if everyone can move to an edge with only 1 move
+            // If there is not enough edges to the next node, someone will have to follow us
+
+            MessageTemplate msgT=MessageTemplate.and(
+                MessageTemplate.MatchProtocol("EDGE"),
+                MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            ACLMessage msgR=this.myAgent.receive(msgT);
+
+            List<String> edges_occupied = new ArrayList<String>();
+
+            while(msgR!=null){
+                try {
+                    edges_occupied.add((String) msgR.getContentObject());
+                    msgR=this.myAgent.receive(msgTemplate);
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
             }
+            Collections.shuffle(edges_occupied);
+
+
+            System.out.println(myAgent.getLocalName()+" edges_occuped = "+edges_occupied);
+
+            List<Edge> es = this.myMap.getNode(pathToCorner.get(0)).edges().collect(Collectors.toList());
+            List<String> ln = new ArrayList<String>();
+            for(Edge e : es){
+                if(e.getNode0().getId().compareTo(pathToCorner.get(0))==0){
+                    ln.add(e.getNode1().getId());
+                }
+                else{
+                    ln.add(e.getNode0().getId());
+                }
+            }
+
+            List<String> reachable = new ArrayList<String>();   // Reachable around the next node in the path by only one move
+
+            for(String n : ln){
+                for (Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
+                    if (obs.getLeft().getLocationId().compareTo(n)==0){ // Not reachable by only one move
+                        reachable.add(n);
+                    }
+                }
+            }
+
+            System.out.println(myAgent.getLocalName()+" reachable nodes around the next in the path = "+reachable);
+            String move = null;
+
+            if(reachable.size()==0){
+                // Chase
+            }
+            else if(reachable.size()==1) {
+                move = reachable.get(0);
+            }
+            else{
+                System.out.println(reachable.size());
+                for(String reach : reachable){
+                    if(edges_occupied.contains(reach)){
+                        if(move == null){
+                            move = reach;
+                        }
+                    }
+                    else{
+                        move = reach;
+                    }
+                }
+            }
+
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.setProtocol("EDGE");
+            msg.setSender(this.myAgent.getAID());
+
+            for (String agentName : receivers) {
+                msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+            }
+            try {
+                msg.setContentObject(move);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
+
+            // If I am on the path of the golem, then I have to move to let him go to the corner
+            // Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+            // String node = pathToCorner.get(0);
+            // if (node.equals(myPosition.getLocationId())) {
+            //     System.out.println(myAgent.getLocalName()+" I am on the path of the golem, I have to move");
+            // }
+
+            System.out.println(myAgent.getLocalName()+" I will move to "+move);
         }
 
-        ACLMessage msg_leader = new ACLMessage(ACLMessage.INFORM);
-        msg_leader.setProtocol("LEADER");
-        msg_leader.setSender(this.myAgent.getAID());
-
-        for (String agentName : receivers) {
-            msg_leader.addReceiver(new AID(agentName, AID.ISLOCALNAME));
-        }
-        try {			
-            msg_leader.setContentObject(leader);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ((AbstractDedaleAgent)this.myAgent).sendMessage(msg_leader);
-
-	}
+    }
 
 	@Override
 	public int onEnd(){

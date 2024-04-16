@@ -405,7 +405,7 @@ public class Principal {
 				agentName="Tibi";
 		
 				//3) If you want to give specific parameters to your agent, add them here
-				Object [] entityParametersExplo4={"Tim,Elsa,Robin"};
+				Object [] entityParametersExplo4={"Tim", "Elsa", "Robin"};
 		
 				//4) Give the class name of your agent to let the system instantiate it
 				ag=createNewDedaleAgent(c, agentName, ExploreFSMAgent.class.getName(), entityParametersExplo4);//ExploreSoloAgent

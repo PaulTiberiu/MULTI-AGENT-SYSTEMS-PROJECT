@@ -61,7 +61,7 @@ public class PingBehaviour extends SimpleBehaviour {
         ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
 		try {
-			this.myAgent.doWait(100);
+			Thread.sleep(100);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
