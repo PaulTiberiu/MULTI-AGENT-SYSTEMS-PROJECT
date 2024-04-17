@@ -31,7 +31,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
     private MapRepresentation myMap;
     private int exitValue = 0;
     private gsLocation golemPosition = null;
-    private boolean block = false;
+    private Integer block = null;
     //private SerializableSimpleGraph<String, MapAttribute> sg;
 
     /**
@@ -52,6 +52,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
             e.printStackTrace();
         }
         golemPosition = null;
+        block = null;
 
         myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
         exitValue = 0;
@@ -87,8 +88,12 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     sendersInfos.add(new Couple<String, Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>>(chaseInfos.getAgentId(), new Couple<String, List<Couple<Location,List<Couple<Observation,Integer>>>>>(chaseInfos.getNextPosition(), chaseInfos.getobs())));
                     // LISTE DE GOLEM POSITIONS PUIS TRAITER QUELLE EST LA BONNE VIA ALLIES POS ETC
                     golemPositions.add(chaseInfos.getGolemPosition());
-                    if(block == false){
-                        block = chaseInfos.isBlock();
+                    if(chaseInfos.isBlock() == false){
+                        block = 0;
+                        ((ExploreFSMAgent) myAgent).setSendersInfos(null);
+                    }
+                    else if(chaseInfos.isBlock() == true && block == null){
+                        block = 1;
                     }
                 } catch (UnreadableException e) {
                     e.printStackTrace();
@@ -109,14 +114,14 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 for(Couple<String, Couple<String, List<Couple<Location, List<Couple<Observation, Integer>>>>>> infos : sendersInfos){
                     if(infos.getRight().getLeft().compareTo(infos.getRight().getRight().get(0).getLeft().getLocationId())!=0){
                         System.out.println("QLQ UN BOUGE DONC PAS DE BLOCK!");
-                        block = false;
+                        block = 0;
                     }
                 }
             }
             
 
             if(sendersInfos.size()>0){
-                System.out.println("I am "+this.myAgent.getLocalName()+" and I received "+sendersInfos.size()+" msg and the informations are: "+sendersInfos +"\ngolem postion = "+golemPosition);
+                System.out.println("I am "+this.myAgent.getLocalName()+" and I received "+sendersInfos.size()+" msg and the informations are: "+sendersInfos +"\ngolem postion = "+golemPosition+" block = "+block);
             }
             else{
                 System.out.println("I am "+this.myAgent.getLocalName()+" and I didnt receive any information");
@@ -131,10 +136,22 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 ((ExploreFSMAgent) myAgent).setGolemPosition(golemPosition);
             }
 
-            if((block==true && ((ExploreFSMAgent) myAgent).isBlock()==true) && golemPosition!=null){  // We blocked the golem ! FAUT IL METTRE UN && OU UN || ?
-                ((ExploreFSMAgent) myAgent).setBlock(block);
+            if (block != null && block == 1 && golemPosition != null && ((ExploreFSMAgent) myAgent).getSendersInfos()==null){
+                // I probably didnt received the whole informations at the same time, I will stock the informations and add them to the next iteration
+                ((ExploreFSMAgent) myAgent).setSendersInfos(sendersInfos);
+                System.out.println(myAgent.getLocalName()+" They blocked the golem but i dont have all the informations so i stock "+ sendersInfos);
+            }
+            else if(block != null && block == 1 && golemPosition != null && ((ExploreFSMAgent) myAgent).getSendersInfos()!=null){
+                // I probably didnt received the whole informations at the same time, I check if I stocked the informations missing and add them
+                sendersInfos.addAll(((ExploreFSMAgent) myAgent).getSendersInfos());
+                System.out.println(myAgent.getLocalName()+" I added "+((ExploreFSMAgent) myAgent).getSendersInfos()+" to : "+sendersInfos);
+            }
+
+            if(block != null && block==1 && ((ExploreFSMAgent) myAgent).isBlock()==true && golemPosition!=null){  // We blocked the golem !
+                ((ExploreFSMAgent) myAgent).setBlock(true);
                 exitValue = 3;
                 System.out.println("\n\n\n "+myAgent.getLocalName()+"---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
+                ((ExploreFSMAgent) myAgent).setSendersInfos(null);
                 return;
             }
             else{
@@ -401,7 +418,9 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 ((AbstractDedaleAgent)this.myAgent).sendMessage(ping);
 
                 try {
-                    Thread.sleep(100);
+                    for (int i = 0; i < receivers.size(); i++){
+                        myAgent.doWait(100);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -640,6 +659,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
         }
     
     }
+
 
     @Override
     public boolean done() {

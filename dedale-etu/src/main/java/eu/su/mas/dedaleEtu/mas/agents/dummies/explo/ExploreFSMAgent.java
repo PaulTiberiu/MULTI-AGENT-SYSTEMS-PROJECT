@@ -2,8 +2,12 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import dataStructures.tuple.Couple;
+
 import java.util.HashMap;
 
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
@@ -19,7 +23,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.ToCornerBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.ChaseBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
-
+import eu.su.mas.dedale.env.Location;
 
 public class ExploreFSMAgent extends AbstractDedaleAgent {
 
@@ -36,6 +40,8 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private boolean block = false;
 	private List<String> pathToG;
 	private List<String> pathToCorner;
+	private List<Couple<String, Couple<String, List<Couple<Location, List<Couple<Observation, Integer>>>>>>> sendersInfos;
+	private List<String> movesToCorner = null;
 	
 	/************************************************
 	* 
@@ -312,5 +318,20 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 		return this.pathToCorner;
 	}
 
+	public List<Couple<String, Couple<String, List<Couple<Location, List<Couple<Observation, Integer>>>>>>> getSendersInfos(){
+		return sendersInfos;
+	}
+
+	public void setSendersInfos(List<Couple<String,Couple<String,List<Couple<Location,List<Couple<Observation,Integer>>>>>>> sendersInfos){
+		this.sendersInfos = sendersInfos;
+	}
+
+	public List<String> getMovesToCorner(){
+		return this.movesToCorner;
+	}
+
+	public void setMovesToCorner(List<String> movesToCorner){
+        this.movesToCorner = movesToCorner;
+    }
 
 }

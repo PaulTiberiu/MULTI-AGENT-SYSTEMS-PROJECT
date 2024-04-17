@@ -71,7 +71,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         this.receivers = receivers;
 	}
 
-	@Override
+    @Override
 	public void action() {
         try {
             Thread.sleep(5000);
@@ -79,8 +79,9 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             e.printStackTrace();
         }
         exitValue = 0;
-        myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
 
+        this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
+        
         // I know the golem's position because I blocked him
         gsLocation golemPosition = ((ExploreFSMAgent) this.myAgent).getGolemPosition();
 
@@ -206,101 +207,160 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
         List<String> pathToCorner = ((ExploreFSMAgent) myAgent).getPathToCorner();
 
-        // 1. notre agent se situe sur le path vers le corner
-        // 2. il doit bouger sur un neoud qui fait partie du paath vers le corner
-        // 3. avant de bouger, regarder l'arite du noeud actuel de notre agent
-        // 4. dire a nos allies de venir bloquer les edges du noeud de l'agent actuel
-        // 5. ensuite, quand les edges sont bloques, on peut dire a l'agent de faire son mouvement vers le noeud appartenant au path.
-        // 6. si ce neoud a une tres grande arite (> nombre d'agents), on l'enleve du path et on recalcule le path.
-        //     -> mais si c'est la seule possibilite pour aller au noeud de plus petite arite, alors on y va quand meme et si le golem fuit alors on passe dans chase.
-            
-        // obs: si le nombre d'agents nous permet, on n'est pas obligees de bloquer le golem sur un noeud de plus petite arite (plus petite arite + 1 est egalement bon)
-
-        // on itere
-
         if(pathToCorner!=null){
 
             // To chose the node to move to, we need to communicate to make sure we will block the golem on the next node
             // To do so, we will take a node at the edge of the next position in the path and we will check if everyone can move to an edge with only 1 move
             // If there is not enough edges to the next node, someone will have to follow us
 
-            MessageTemplate msgT=MessageTemplate.and(
-                MessageTemplate.MatchProtocol("EDGE"),
-                MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-            ACLMessage msgR=this.myAgent.receive(msgT);
+            boolean searching = true;
 
-            List<String> edges_occupied = new ArrayList<String>();
-
-            while(msgR!=null){
+            while(searching){
                 try {
-                    edges_occupied.add((String) msgR.getContentObject());
-                    msgR=this.myAgent.receive(msgTemplate);
-                } catch (UnreadableException e) {
+                    for(int i=0; i<receivers.size(); i++) {
+                        myAgent.doWait(1000);
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
-            Collections.shuffle(edges_occupied);
 
+                MessageTemplate msgT=MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("EDGE"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                ACLMessage msgR=this.myAgent.receive(msgT);
 
-            System.out.println(myAgent.getLocalName()+" edges_occuped = "+edges_occupied);
+                List<String> edges_occupied = new ArrayList<String>();
+                List<String> senders = new ArrayList<String>();
+                List<Boolean> ends = new ArrayList<Boolean>();
 
-            List<Edge> es = this.myMap.getNode(pathToCorner.get(0)).edges().collect(Collectors.toList());
-            List<String> ln = new ArrayList<String>();
-            for(Edge e : es){
-                if(e.getNode0().getId().compareTo(pathToCorner.get(0))==0){
-                    ln.add(e.getNode1().getId());
-                }
-                else{
-                    ln.add(e.getNode0().getId());
-                }
-            }
-
-            List<String> reachable = new ArrayList<String>();   // Reachable around the next node in the path by only one move
-
-            for(String n : ln){
-                for (Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
-                    if (obs.getLeft().getLocationId().compareTo(n)==0){ // Not reachable by only one move
-                        reachable.add(n);
+                while(msgR!=null){
+                    try {
+                        if(!senders.contains(msgR.getSender().getLocalName())){
+                            System.out.println(myAgent.getLocalName()+" I received "+((PathInfo) msgR.getContentObject()).getPath()+" from "+msgR.getSender().getLocalName());
+                            edges_occupied.add((((PathInfo) msgR.getContentObject()).getPath().get(0)));
+                            if(((PathInfo) msgR.getContentObject()).getPath().get(1).compareTo("true")!=0){
+                                ends.add(false);
+                                ((ExploreFSMAgent) myAgent).setMovesToCorner(null);
+                            }
+                            else{
+                                ends.add(true);
+                            }
+                            senders.add(msgR.getSender().getLocalName());
+                        }
+                        msgR=this.myAgent.receive(msgT);
+                    } catch (UnreadableException e) {
+                        e.printStackTrace();
                     }
                 }
-            }
 
-            System.out.println(myAgent.getLocalName()+" reachable nodes around the next in the path = "+reachable);
-            String move = null;
+                if(!ends.contains(false) && ((ExploreFSMAgent) myAgent).getMovesToCorner()==null){
+                    ((ExploreFSMAgent) myAgent).setMovesToCorner(edges_occupied);
+                    System.out.println(myAgent.getLocalName()+" I stock "+edges_occupied);
+                }
+                else if(!ends.contains(false) && ((ExploreFSMAgent) myAgent).getMovesToCorner()!=null){
+                    List<String> movesToCorner = ((ExploreFSMAgent) myAgent).getMovesToCorner();
+                    System.out.println(myAgent.getLocalName()+" I added my stock = "+ movesToCorner+" to edges_occupied = "+edges_occupied);
+                    for(String m : movesToCorner){
+                        if(!edges_occupied.contains(m)){
+                            edges_occupied.add(m);
+                        }
+                    }
+                }
+                
+                Collections.shuffle(edges_occupied);
 
-            if(reachable.size()==0){
-                // Chase
-            }
-            else if(reachable.size()==1) {
-                move = reachable.get(0);
-            }
-            else{
-                System.out.println(reachable.size());
-                for(String reach : reachable){
-                    if(edges_occupied.contains(reach)){
-                        if(move == null){
+                System.out.println(myAgent.getLocalName()+" edges_occupied = "+edges_occupied);
+
+                List<Edge> es = this.myMap.getNode(pathToCorner.get(0)).edges().collect(Collectors.toList());
+                List<String> ln = new ArrayList<String>();
+                for(Edge e : es){
+                    if(e.getNode0().getId().compareTo(pathToCorner.get(0))==0){
+                        ln.add(e.getNode1().getId());
+                    }
+                    else{
+                        ln.add(e.getNode0().getId());
+                    }
+                }
+
+                List<String> reachable = new ArrayList<String>();   // Reachables around the next node in the path by only one move
+
+                for(String n : ln){
+                    for (Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
+                        if (obs.getLeft().getLocationId().compareTo(n)==0){ // Reachable by only one move
+                            reachable.add(n);
+                        }
+                    }
+                }
+
+                System.out.println(myAgent.getLocalName()+" reachable nodes around the next in the path = "+reachable);
+                String move = null;
+
+                if(reachable.size()==0){
+                    System.out.println("\n\nJE PASSE EN CHASE MODE\n\n");
+                }
+                else if(reachable.size()==1) {
+                    move = reachable.get(0);
+                }
+                else{
+                    for(String reach : reachable){
+                        if(edges_occupied.contains(reach)){
+                            if(move == null){
+                                move = reach;
+                            }
+                        }
+                        else{
                             move = reach;
                         }
                     }
+                }
+
+                List<String> temp = new ArrayList<String>();
+                boolean error = false; boolean done = false;
+
+                edges_occupied.add(move);
+
+                for(String m : edges_occupied){
+                    if(temp.contains(m)){
+                        error = true;
+                    }
                     else{
-                        move = reach;
+                        temp.add(m);
                     }
                 }
-            }
+                
+                if(edges_occupied.containsAll(ln) && !error){
+                    done = true;
+                }
 
-            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-            msg.setProtocol("EDGE");
-            msg.setSender(this.myAgent.getAID());
+                ends.removeAll(List.of(false));
 
-            for (String agentName : receivers) {
-                msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+                if(done == true && ends.size() == ln.size()-1){
+                    searching = false;
+                    ((ExploreFSMAgent) myAgent).setNextMove(new gsLocation(move));
+                }
+
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                msg.setProtocol("EDGE");
+                msg.setSender(this.myAgent.getAID());
+
+                for (String agentName : receivers) {
+                    msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+                }
+                try {
+                    List<String> l = new ArrayList<String>();
+                    l.add(move);
+                    if(done==true){
+                        l.add("true");
+                    }else{
+                        l.add("false");
+                    }
+                    msg.setContentObject(new PathInfo(l));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(myAgent.getLocalName()+" I am sending "+move+" to "+receivers);
+                ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
             }
-            try {
-                msg.setContentObject(move);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
 
             // If I am on the path of the golem, then I have to move to let him go to the corner
             // Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
@@ -309,7 +369,12 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             //     System.out.println(myAgent.getLocalName()+" I am on the path of the golem, I have to move");
             // }
 
-            System.out.println(myAgent.getLocalName()+" I will move to "+move);
+            System.out.println("\n\n\n"+myAgent.getLocalName()+" I will move to "+((ExploreFSMAgent) myAgent).getNextMove().getLocationId()+"\n\n\n");
+            try {
+                Thread.sleep(1000000);
+            } catch (Exception e) {
+                
+            }
         }
 
     }
