@@ -3,6 +3,8 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import org.graphstream.graph.Edge;
+import org.graphstream.graph.Node;
 
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
@@ -70,7 +74,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 		((ExploreFSMAgent)this.myAgent).addIteration();
 		this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
 		exitValue = 0;
-		myNextNode=null;
+		myNextNode = ((ExploreFSMAgent) this.myAgent).getNextNode();
 		if(this.myMap==null) {
 			this.myMap = new MapRepresentation(isFullMap);
 		}
@@ -86,7 +90,6 @@ public class ExploBehaviour extends SimpleBehaviour {
 			MessageTemplate.MatchPerformative(ACLMessage.PROPOSE));
 		ACLMessage pingRecept=this.myAgent.receive(msgTemplate);
 
-		
 		if (pingRecept!=null){
 			while(pingRecept!=null){
 				((ExploreFSMAgent)this.myAgent).addAgentsTosend(pingRecept.getSender().getLocalName());
@@ -122,27 +125,34 @@ public class ExploBehaviour extends SimpleBehaviour {
 					//the node may exist, but not necessarily the edge
 					if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
 						this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
-						if (isNewNode) myNextNode=accessibleNode.getLocationId();
+						if (isNewNode && myNextNode==null) myNextNode=accessibleNode.getLocationId();
 					}
 				}
 
 				//3) while openNodes is not empty, continues.
 				//if (!this.myMap.hasOpenNode() || (((ExploreFSMAgent) this.myAgent).getIteration() >= 200 && )){
-				if (!this.myMap.hasOpenNode() || ((ExploreFSMAgent) this.myAgent).getIteration() >= 300){
+				if (!this.myMap.hasOpenNode() || ((ExploreFSMAgent) this.myAgent).getIteration() >= 200){
 					//Explo finished
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done !");
-					System.out.println(this.myMap.getClosedNodes());
+					System.out.println("Closed nodes = "+this.myMap.getClosedNodes()+this.myMap.getClosedNodes().size());
+					System.out.println("Open nodes = "+this.myMap.getOpenNodes());
 					exitValue = 3;
 					chase_mode();
 				}else{
+					String move;
+
 					//4) select next move.
 					if (myNextNode==null){
-						myNextNode=this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
+						List<String> path = this.myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId());
+						move=path.get(0);
+						myNextNode = path.get(path.size()-1);
 						System.out.println("I am "+this.myAgent.getLocalName()+", my next node was null and now is "+myNextNode+", my position is "+myPosition);
 					}
+					else{
+						move = this.myMap.getShortestPath(myPosition.getLocationId(), myNextNode).get(0);
+						System.out.println("I am "+this.myAgent.getLocalName()+", my next node was "+myNextNode+" and so, my move is "+move+", my position is "+myPosition);
+					}
 					
-					
-
 					msgTemplate=MessageTemplate.and(
 						MessageTemplate.MatchProtocol("SHARE-TOPO-POS-ID"),
 						MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -168,42 +178,66 @@ public class ExploBehaviour extends SimpleBehaviour {
 						for (SerializableNode<String, MapAttribute> node : all_nodes) {
 								nodeList.add(node.getNodeId());
 						}
-
+						
 						String except = infoRecept.getSender().getLocalName();
 						((ExploreFSMAgent) this.myAgent).addNodesToShare(nodeList, except);
 
-						// if (this.myNextNode!=null && nextPositionSender!=null && this.myNextNode.compareTo(nextPositionSender)==0){ // Noeud prioritaire, cas de conflit de next node avec un autre agent
-						// 	if (agentIdSender.compareTo(this.myAgent.getLocalName())>0){
-						// 		this.myMap.addNode(nextPositionSender, MapAttribute.closed);
-						// 		List<String> path = this.myMap.getShortestPathToClosestOpenNode(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId());
-						// 		if(path!=null && path.size() > 0)
-						// 			myNextNode = path.get(0);
-						// 		this.myMap.addNode(nextPositionSender, MapAttribute.open);
-						// 	}
-						// }
+						if (this.myNextNode!=null && nextPositionSender!=null && this.myNextNode.compareTo(nextPositionSender)==0){ // Noeud prioritaire, cas de conflit de next node avec un autre agent
+							if (agentIdSender.compareTo(this.myAgent.getLocalName())>0){
+								List<String> path = this.myMap.getShortestPathToClosestOpenNodeWithoutPassing(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId(), myNextNode);
+								if(path!=null && path.size() > 0){
+									myNextNode = path.get(path.size() - 1);
+									move = path.get(0);
+								}
+							}
+						}
 					}
+
 					System.out.println("I am "+this.myAgent.getLocalName()+", my position is "+myPosition+" and I will try to move to "+myNextNode);
 					cmpt++;
-					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
+					((ExploreFSMAgent) myAgent).setNextNode(myNextNode);
+					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(move));
 
-					int c = 1;
+					int c = lobs.size();
+					List<String> path = new ArrayList<String>();
 
 					while(!moved){
 						System.out.println("I am "+this.myAgent.getLocalName()+" and I am searching for another node");
-						if (c >= lobs.size()){
+						((ExploreFSMAgent) myAgent).setNextNode(null);
+						
+						if(myNextNode!=null && move!=null && myNextNode.compareTo(move)==0 && path!=null && path.size()==0){
+							path = this.myMap.getShortestPathToClosestOpenNodeWithoutPassing(((AbstractDedaleAgent)this.myAgent).getCurrentPosition().getLocationId(), myNextNode);
+							if(path!=null && path.size() > 0){
+								myNextNode = path.get(path.size() - 1);
+								move = path.get(0);
+								((ExploreFSMAgent) myAgent).setNextNode(myNextNode);
+							}
+							else{
+								myNextNode = null;
+								System.out.println(myAgent.getLocalName()+" There is no other open nodes");
+								((ExploreFSMAgent) myAgent).setNextNode(myNextNode);
+							}
+							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(move));
+						}
+
+						else if (c >= lobs.size()){
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(myPosition);
-							myNextNode = myPosition.getLocationId();
+							move = myPosition.getLocationId();
 						}
 						else{
 							Couple<Location, List<Couple<Observation, Integer>>> obs = lobs.get(c);
-							if(obs.getLeft().getLocationId().compareTo(myNextNode) != 0 && (obs.getLeft().getLocationId()).compareTo(myPosition.getLocationId()) != 0){
-								myNextNode = obs.getLeft().getLocationId();
+							if(obs.getLeft().getLocationId().compareTo(move) != 0 && (obs.getLeft().getLocationId()).compareTo(myPosition.getLocationId()) != 0){
+								move = obs.getLeft().getLocationId();
 							}
-							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(myNextNode));
-							c++;
+							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(move));
+							c--;
 						}
 					}
-					System.out.println("I am "+this.myAgent.getLocalName()+", my position is "+myPosition+" and I am moving to "+myNextNode);
+
+					if(myNextNode!=null && move!=null && move.compareTo(myNextNode)==0){
+						((ExploreFSMAgent) myAgent).setNextNode(null);
+					}
+					System.out.println("I am "+this.myAgent.getLocalName()+", my position is "+myPosition+" and I am moving to "+move);
 				}
 			}
 		}
@@ -225,7 +259,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 		String repertoireActuel = System.getProperty("user.dir");
 		try (FileWriter writer = new FileWriter(repertoireActuel+"/resources/nbIterations.txt", true)) {
-			writer.write(myAgent.getLocalName()+" : "+((ExploreFSMAgent)this.myAgent).getIteration()+"\n");
+			writer.write(myAgent.getLocalName()+" : "+((ExploreFSMAgent)this.myAgent).getIteration()+" nb closed nodes = "+this.myMap.getClosedNodes().size()+"\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

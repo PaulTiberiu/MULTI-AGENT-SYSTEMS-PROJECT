@@ -74,12 +74,13 @@ public class ToCornerBehaviour extends SimpleBehaviour {
     @Override
 	public void action() {
         try {
-            Thread.sleep(5000);
+            Thread.sleep(500);
         } catch (Exception e) {
             e.printStackTrace();
         }
         exitValue = 0;
 
+        List<String> pathToCorner = ((ExploreFSMAgent) this.myAgent).getPathToCorner();
         this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
         
         // I know the golem's position because I blocked him
@@ -133,7 +134,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage received_path_leader=this.myAgent.receive(received_path_template);
 
-        if(received_path_leader != null){
+        if(received_path_leader != null && pathToCorner == null){
             try {
                 PathInfo pathInfo = (PathInfo) received_path_leader.getContentObject();
                 System.out.println(myAgent.getLocalName()+" received path from leader = "+pathInfo.getPath());
@@ -169,7 +170,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 }
             }
 
-            if(leader.compareTo(myAgent.getLocalName())==0){
+            if(leader.compareTo(myAgent.getLocalName())==0 && pathToCorner==null){
                 List<String> shortest_path = this.myMap.getShortestPath(golemPosition.getLocationId(), node);
                 // System.out.println(myAgent.getLocalName() + " shortest_path from "+golemPosition+" to " + node + " = "+shortest_path);
                 // System.out.println(myAgent.getLocalName() + " length = "+shortest_path.size());
@@ -183,7 +184,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         if(leader != null && leader.compareTo(this.myAgent.getLocalName())==0) {
             // I am the leader, I need to send to everybody my shortest path to a corner
 
-            List<String> pathToCorner = ((ExploreFSMAgent) this.myAgent).getPathToCorner();
+            pathToCorner = ((ExploreFSMAgent) this.myAgent).getPathToCorner();
 
             System.out.println(myAgent.getLocalName()+" I am the leader and the shortest path is: "+pathToCorner);
 
@@ -205,7 +206,9 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             ((AbstractDedaleAgent)this.myAgent).sendMessage(msg_path);
         }
 
-        List<String> pathToCorner = ((ExploreFSMAgent) myAgent).getPathToCorner();
+        pathToCorner = ((ExploreFSMAgent) myAgent).getPathToCorner();
+
+        Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
 
         if(pathToCorner!=null){
 
@@ -282,6 +285,8 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     }
                 }
 
+                System.out.println(myAgent.getLocalName()+" ln = "+ln);
+
                 List<String> reachable = new ArrayList<String>();   // Reachables around the next node in the path by only one move
 
                 for(String n : ln){
@@ -292,7 +297,9 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     }
                 }
 
-                System.out.println(myAgent.getLocalName()+" reachable nodes around the next in the path = "+reachable);
+                Collections.shuffle(reachable);                
+
+                System.out.println(myAgent.getLocalName()+" reachable nodes around the next in the path = "+reachable+"\npath = "+pathToCorner);
                 String move = null;
 
                 if(reachable.size()==0){
@@ -358,20 +365,72 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(myAgent.getLocalName()+" I am sending "+move+" to "+receivers);
+                System.out.println(myAgent.getLocalName()+" I am sending "+move+" "+done+" to "+receivers);
                 ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
             }
 
-            // If I am on the path of the golem, then I have to move to let him go to the corner
-            // Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
-            // String node = pathToCorner.get(0);
-            // if (node.equals(myPosition.getLocationId())) {
-            //     System.out.println(myAgent.getLocalName()+" I am on the path of the golem, I have to move");
-            // }
+            gsLocation move = ((ExploreFSMAgent) myAgent).getNextMove();
 
-            System.out.println("\n\n\n"+myAgent.getLocalName()+" I will move to "+((ExploreFSMAgent) myAgent).getNextMove().getLocationId()+"\n\n\n");
+            System.out.println("\n\n\n"+myAgent.getLocalName()+" I will move to "+move.getLocationId()+"\n\n\n");
+
+            boolean moved = false;
+            while(!moved){
+                try {
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    
+                }
+                //If I am on the path of the golem, then I have to move to let him go to the corner
+                if (myPosition.getLocationId().equals(pathToCorner.get(0))) {
+                    System.out.println(myAgent.getLocalName()+" I am on the path of the golem, I have to move");
+                    moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
+                }
+
+                // I am not on the path of the golem and I dont go into him, so I'll have to block him, I am an edge blocker
+                else if (!move.equals(golemPosition)){
+                    System.out.println(myAgent.getLocalName()+" I am an edge blocker, I am waiting for a msg");
+                    try {
+                        myAgent.doWait(100);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    MessageTemplate msgTemp=MessageTemplate.and(
+                        MessageTemplate.MatchProtocol("MOVE"),
+                        MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                    ACLMessage msg=this.myAgent.receive(msgTemp);
+
+                    if(msg!=null){
+                        System.out.println(myAgent.getLocalName()+" I received a message I'll move");
+                        moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
+                    }
+                }
+
+                // I am on the path of the golem and I go into him so I will notify the edges blocker to move !
+                else{
+                    System.out.println(myAgent.getLocalName()+" I am trying to move to te golem, if it works, it means he moved so I will notify the edges blocker");
+                    moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
+                    if(moved){
+                        System.out.println(myAgent.getLocalName()+" I notify the edges blocker to move");
+                        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                        msg.setProtocol("MOVE");
+                        msg.setSender(this.myAgent.getAID());
+
+                        for (String agentName : receivers) {
+                            msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+                        }
+                        ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
+                    }
+                }
+            }
+
+            System.out.println(myAgent.getLocalName()+" I moved to "+move);
+            ((ExploreFSMAgent)myAgent).setGolemPosition(new gsLocation(pathToCorner.get(0)));
+            pathToCorner.remove(0);
+            ((ExploreFSMAgent)myAgent).setPathToCorner(pathToCorner);
+
             try {
-                Thread.sleep(1000000);
+                Thread.sleep(1000);
             } catch (Exception e) {
                 
             }

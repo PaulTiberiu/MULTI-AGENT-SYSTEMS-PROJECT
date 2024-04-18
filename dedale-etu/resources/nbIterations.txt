@@ -1,874 +1,148 @@
 --------------------- VAGUES D ITERATIONS 1 MAP CARRE ---------------------
  ENVIRON 200 ?
 
-Tibi@Ithaq : 255
-Elsa@Ithaq : 233
-Tim@Ithaq : 249
-Robin@Ithaq : 289
-Robin@Ithaq : 186
-Elsa@Ithaq : 199
-Tibi@Ithaq : 219
-Tim@Ithaq : 277
-Tibi@Ithaq : 300
-Robin@Ithaq : 301
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 110
-Tim@Ithaq : 120
-Elsa@Ithaq : 123
-Robin@Ithaq : 126
-Tibi@Ithaq : 246
-Tim@Ithaq : 302
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Elsa@Ithaq : 109
-Tim@Ithaq : 112
-Robin@Ithaq : 108
-Tibi@Ithaq : 113
-Tim@Ithaq : 301
-Robin@Ithaq : 302
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 132
-Robin@Ithaq : 165
-Tim@Ithaq : 199
-Elsa@Ithaq : 205
-Tibi@Ithaq : 81
-Robin@Ithaq : 91
-Tim@Ithaq : 142
-Elsa@Ithaq : 199
-Elsa@Ithaq : 156
-Robin@Ithaq : 147
-Tim@Ithaq : 151
-Tibi@Ithaq : 173
-Elsa@Ithaq : 109
-Robin@Ithaq : 134
-Tibi@Ithaq : 125
-Tim@Ithaq : 150
-Elsa@Ithaq : 300
-Tibi@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Elsa@Ithaq : 301
-Tim@Ithaq : 302
-Tibi@Ithaq : 303
-Robin@Ithaq : 302
-Robin@Ithaq : 302
-Tibi@Ithaq : 302
-Tim@Ithaq : 302
-Elsa@Ithaq : 300
-Tibi@Ithaq : 303
-Elsa@Ithaq : 301
-Robin@Ithaq : 301
-Tim@Ithaq : 301
-Tim@Ithaq : 300
-Tibi@Ithaq : 302
-Elsa@Ithaq : 300
-Robin@Ithaq : 301
-Elsa@Ithaq : 300
-Tim@Ithaq : 302
-Tibi@Ithaq : 303
-Robin@Ithaq : 300
-Tibi@Ithaq : 303
-Robin@Ithaq : 301
-Elsa@Ithaq : 301
-Tim@Ithaq : 300
-Tibi@Ithaq : 303
-Elsa@Ithaq : 301
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Tibi@Ithaq : 301
-Robin@Ithaq : 300
-Robin@Ithaq : 301
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Tibi@Ithaq : 301
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Tibi@Ithaq : 301
-Tibi@Ithaq : 300
-Elsa@Ithaq : 302
-Robin@Ithaq : 301
-Tim@Ithaq : 301
-Robin@Ithaq : 300
-Elsa@Ithaq : 301
-Tibi@Ithaq : 300
-Tim@Ithaq : 301
-Elsa@Ithaq : 300
-Robin@Ithaq : 301
-Tibi@Ithaq : 300
-Tim@Ithaq : 301
-Tibi@Ithaq : 300
-Robin@Ithaq : 301
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 302
-Robin@Ithaq : 303
-Elsa@Ithaq : 300
-Tim@Ithaq : 302
-Tim@Ithaq : 300
-Elsa@Ithaq : 301
-Robin@Ithaq : 301
-Tibi@Ithaq : 301
-Tibi@Ithaq : 302
-Elsa@Ithaq : 301
-Robin@Ithaq : 301
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tim@Ithaq : 301
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 301
-Tibi@Ithaq : 301
-Elsa@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 301
-Tim@Ithaq : 300
-Tibi@Ithaq : 300
-Tim@Ithaq : 301
-Robin@Ithaq : 300
-Tibi@Ithaq : 302
-Elsa@Ithaq : 300
-Robin@Ithaq : 301
-Tim@Ithaq : 302
-Elsa@Ithaq : 300
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Robin@Ithaq : 302
-Tibi@Ithaq : 300
-Tim@Ithaq : 300
-Tibi@Ithaq : 151
-Elsa@Ithaq : 258
-Tim@Ithaq : 301
-Robin@Ithaq : 300
-Tibi@Ithaq : 144
-Tim@Ithaq : 136
-Elsa@Ithaq : 183
-Robin@Ithaq : 206
-Tibi@Ithaq : 254
-Tim@Ithaq : 280
-Robin@Ithaq : 299
-Elsa@Ithaq : 284
-Tibi@Ithaq : 300
-Robin@Ithaq : 300
-Tim@Ithaq : 301
-Elsa@Ithaq : 300
-Elsa@Ithaq : 104
-Tim@Ithaq : 113
-Tibi@Ithaq : 118
-Robin@Ithaq : 169
-Elsa@Ithaq : 301
-Robin@Ithaq : 300
-Tibi@Ithaq : 302
-Tim@Ithaq : 300
-Tibi@Ithaq : 301
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Tim@Ithaq : 301
-Tibi@Ithaq : 302
-Elsa@Ithaq : 300
-Robin@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Tibi@Ithaq : 302
-Robin@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 301
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Tibi@Ithaq : 300
-Tim@Ithaq : 301
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 301
-Robin@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 301
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Robin@Ithaq : 301
-Elsa@Ithaq : 300
-Tim@Ithaq : 301
-Tibi@Ithaq : 302
-Robin@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 301
-Robin@Ithaq : 301
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 303
-Tim@Ithaq : 300
-Robin@Ithaq : 301
-Tibi@Ithaq : 301
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 303
-Elsa@Ithaq : 301
-Tim@Ithaq : 300
-Robin@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Robin@Ithaq : 301
-Elsa@Ithaq : 302
-Tim@Ithaq : 300
-Tibi@Ithaq : 300
-Elsa@Ithaq : 301
-Tibi@Ithaq : 301
-Tim@Ithaq : 302
-Robin@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 301
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 301
-Tibi@Ithaq : 301
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 300
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
-Robin@Ithaq : 300
-Tim@Ithaq : 300
-Tibi@Ithaq : 300
-Tibi@Ithaq : 300
-Tim@Ithaq : 300
-Robin@Ithaq : 301
-Elsa@Ithaq : 300
-Elsa@Ithaq : 300
-Robin@Ithaq : 301
-Tim@Ithaq : 300
-Tibi@Ithaq : 300
-Robin@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 300
-Tibi@Ithaq : 300
-Elsa@Ithaq : 300
-Tim@Ithaq : 302
-Tibi@Ithaq : 300
-Robin@Ithaq : 300
-Robin@Ithaq : 301
-Elsa@Ithaq : 300
-Tibi@Ithaq : 300
-Tim@Ithaq : 300
-Elsa@Ithaq : 301
-Tibi@Ithaq : 302
-Tim@Ithaq : 302
-Robin@Ithaq : 300
-Tibi@Ithaq : 300
-Tim@Ithaq : 301
-Robin@Ithaq : 300
-Elsa@Ithaq : 300
+Robin : 301
+Tibi : 300
+Tim : 301
+Elsa : 300
 Tim : 300
 Robin : 300
 Elsa : 301
-Tibi : 303
-Elsa : 300
-Tim : 301
-Tibi : 303
-Robin : 301
 Tibi : 300
-Robin : 303
-Elsa : 300
-Tim : 300
-Robin : 300
-Tibi : 304
-Tim : 301
-Elsa : 302
-Robin : 300
-Tim : 300
-Elsa : 300
-Tibi : 300
-Tibi : 300
-Robin : 301
-Tim : 300
-Elsa : 301
-Elsa : 300
-Tibi : 300
-Tim : 300
-Robin : 300
-Elsa : 300
-Tibi : 300
-Tim : 300
-Robin : 300
-Tim : 9
-Elsa : 9
-Tibi : 12
-Robin : 14
-Tibi : 13
-Tim : 14
-Robin : 16
-Elsa : 17
-Tibi : 300
-Elsa : 301
-Tim : 302
-Robin : 300
-Robin : 11
-Elsa : 13
-Tibi : 13
-Robin : 11
-Tibi : 13
-Elsa : 14
-Tim : 14
-Tibi : 8
-Robin : 12
-Elsa : 13
-Tim : 15
-Tibi : 7
-Robin : 7
-Elsa : 13
-Tim : 13
-Tibi : 8
-Robin : 12
-Tim : 12
-Elsa : 13
-Tim : 300
-Elsa : 300
-Tibi : 300
-Robin : 300
-Tim : 301
-Tim : 300
-Elsa : 302
-Robin : 301
-Tibi : 300
-Tim : 300
-Tim : 302
-Robin : 300
-Tibi : 300
-Elsa : 300
-Tibi : 300
-Tim : 300
-Elsa : 300
-Robin : 300
-Robin : 300
-Elsa : 302
-Tim : 301
-Tibi : 301
-Robin : 134
-Elsa : 131
-Tibi : 129
-Tim : 131
-Tibi : 300
-Robin : 300
-Tim : 302
-Elsa : 300
-Elsa : 300
-Robin : 301
-Tibi : 302
-Tim : 300
-Elsa : 300
-Tibi : 300
-Tim : 300
-Robin : 300
-Tibi : 302
-Robin : 300
-Tim : 302
-Elsa : 301
-Elsa : 300
-Robin : 300
-Tim : 300
-Tibi : 301
-Elsa : 300
-Tibi : 302
-Robin : 300
-Tim : 300
-Tim : 300
-Elsa : 300
-Robin : 300
-Tibi : 301
-Robin : 302
-Tim : 300
-Tibi : 300
-Elsa : 300
-Robin : 301
-Elsa : 300
-Tibi : 300
-Tim : 300
-Robin : 300
-Elsa : 300
-Tibi : 302
-Tim : 300
-Robin : 301
-Tim : 300
-Tibi : 301
-Elsa : 301
-Elsa : 300
-Tim : 301
-Robin : 300
-Tibi : 301
-Tibi : 239
-Elsa : 300
-Robin : 301
-Tibi : 300
-Tim : 301
-Robin : 301
 Elsa : 302
 Tim : 300
-Tibi : 300
-Elsa : 300
-Robin : 302
-Tim : 301
-Tibi : 300
-Robin : 300
-Tibi : 301
-Elsa : 300
-Tim : 300
-Tibi : 300
-Elsa : 300
-Tim : 302
-Robin : 300
-Elsa : 300
-Robin : 300
-Tim : 302
-Tibi : 300
-Tim : 302
-Tibi : 300
-Robin : 300
-Elsa : 301
-Robin : 300
-Elsa : 300
-Tim : 301
-Tibi : 300
-Elsa : 300
-Tim : 300
-Robin : 300
-Tibi : 300
-Robin : 301
-Tim : 300
-Elsa : 300
-Tibi : 300
-Robin : 300
-Tibi : 300
-Elsa : 300
-Tim : 300
-Elsa : 300
-Tibi : 301
-Tim : 300
-Robin : 300
-Tim : 301
-Tim : 300
-Elsa : 301
-Robin : 300
-Tibi : 300
-Tim : 300
-Robin : 300
-Elsa : 300
-Tibi : 301
-Elsa : 302
-Tibi : 302
-Robin : 300
-Tim : 301
-Tibi : 300
-Tim : 300
-Elsa : 300
-Robin : 301
-Robin : 300
-Tim : 300
-Tibi : 300
-Elsa : 300
-Tibi : 300
-Tim : 300
-Elsa : 300
-Robin : 301
-Tibi : 300
-Robin : 300
-Elsa : 300
-Tim : 301
-Tim : 300
-Tibi : 300
-Elsa : 301
-Robin : 301
-Robin : 301
-Tim : 300
-Tibi : 300
-Elsa : 300
-Elsa : 300
-Tim : 300
-Robin : 300
-Tibi : 300
-Elsa : 301
-Tim : 300
-Tibi : 300
-Robin : 301
-Robin : 300
-Elsa : 301
-Tibi : 300
-Tim : 300
-Tim : 300
-Robin : 300
-Elsa : 302
-Tibi : 300
-Tim : 300
-Robin : 300
-Elsa : 300
-Tibi : 301
-Robin : 303
-Tibi : 301
-Tim : 301
-Elsa : 301
-Tibi : 301
-Tim : 301
-Robin : 300
-Elsa : 301
-Tim : 300
-Elsa : 300
-Tibi : 300
-Robin : 301
-Tibi : 300
-Tim : 301
-Robin : 302
-Elsa : 301
-Elsa : 300
-Tibi : 300
-Robin : 300
-Tim : 300
-Robin : 303
-Tibi : 300
-Elsa : 300
-Tim : 301
-Elsa : 302
-Robin : 301
-Tibi : 302
-Tim : 300
-Tim : 301
-Tibi : 301
-Elsa : 302
-Robin : 300
-Tibi : 300
-Robin : 300
-Tim : 300
-Elsa : 300
-Elsa : 300
-Robin : 300
-Tim : 300
-Tibi : 300
-Elsa : 302
-Robin : 303
-Tibi : 300
-Tim : 300
-Elsa : 301
-Robin : 301
-Tim : 302
-Tibi : 301
-Robin : 300
-Tibi : 300
-Elsa : 302
-Tim : 301
-Tim : 301
 Robin : 301
 Tibi : 301
-Elsa : 301
-Robin : 301
-Tim : 300
-Tibi : 300
-Elsa : 300
-Elsa : 300
-Tim : 300
-Tibi : 300
-Robin : 301
-Tim : 301
-Elsa : 300
-Tibi : 301
-Robin : 301
-Tim : 300
-Elsa : 301
-Robin : 300
-Tibi : 300
-Tim : 300
-Elsa : 301
-Tibi : 302
-Robin : 300
-Elsa : 300
-Tim : 300
-Robin : 300
-Tibi : 300
-Tibi : 300
-Tim : 300
-Robin : 302
-Elsa : 301
-Robin : 300
-Tibi : 300
-Tim : 302
-Elsa : 300
-Tibi : 300
-Elsa : 300
-Tim : 300
-Robin : 300
-Tim : 301
-Elsa : 300
-Tibi : 301
-Robin : 301
-Tim : 302
-Tibi : 301
-Elsa : 302
-Robin : 300
-Tim : 300
-Robin : 302
-Tibi : 300
-Elsa : 301
-Robin : 300
-Tim : 300
-Elsa : 302
-Tibi : 301
-Robin : 300
-Elsa : 300
-Tim : 300
-Tibi : 300
-Tibi : 301
-Robin : 302
-Elsa : 300
-Tim : 300
-Robin : 300
-Elsa : 300
-Tim : 300
-Tibi : 301
-Tibi : 300
-Elsa : 300
-Tim : 302
-Robin : 300
-Robin : 300
-Elsa : 300
-Tim : 300
-Tibi : 301
-Tibi : 301
-Tim : 302
-Elsa : 300
-Robin : 301
-Tim : 300
-Tibi : 302
-Robin : 300
-Elsa : 301
-Elsa : 110
-Tibi : 134
-Robin : 131
-Tim : 145
-Tibi : 300
-Elsa : 300
-Robin : 301
-Tim : 301
-Tibi : 300
-Tim : 300
-Elsa : 302
-Robin : 300
-Elsa : 302
-Tim : 301
-Robin : 300
-Tibi : 300
-Tim : 303
-Robin : 300
-Tibi : 302
-Elsa : 300
-Tim : 300
-Robin : 300
-Tibi : 302
-Elsa : 301
-Robin : 300
-Elsa : 301
-Tibi : 300
-Tim : 300
-Tibi : 301
-Robin : 301
-Elsa : 300
-Tim : 300
-Tibi : 301
-Elsa : 300
-Robin : 302
-Tim : 300
-Robin : 300
-Elsa : 300
-Tim : 301
-Tibi : 300
-Tim : 300
-Tibi : 300
-Elsa : 300
-Robin : 301
-Tim : 300
-Robin : 300
-Elsa : 300
-Tibi : 300
-Tim : 300
-Elsa : 300
-Robin : 301
-Tibi : 300
-Tim : 301
-Robin : 303
-Elsa : 300
-Tibi : 300
-Robin : 300
-Elsa : 300
-Tim : 300
-Tibi : 301
-Tim : 300
-Elsa : 300
-Tibi : 302
-Robin : 301
-Tim : 300
-Tibi : 300
-Elsa : 302
-Robin : 301
-Tim : 302
-Robin : 300
-Elsa : 302
-Tibi : 300
-Elsa : 301
-Tim : 302
-Tibi : 300
-Robin : 301
-Elsa : 300
-Tim : 300
-Robin : 302
-Tibi : 301
-Elsa : 301
-Tim : 301
-Robin : 300
-Tibi : 301
-Tim : 128
-Elsa : 140
-Robin : 156
-Tibi : 165
-Robin : 90
-Elsa : 99
-Tim : 115
-Tibi : 123
-Robin : 301
-Tim : 303
-Tibi : 301
-Elsa : 301
-Tibi : 100
-Robin : 100
-Tim : 96
-Elsa : 110
-Tibi : 300
-Robin : 300
-Elsa : 300
-Tim : 300
-Elsa : 302
-Robin : 300
-Tim : 300
-Tibi : 301
-Tibi : 300
-Tim : 300
-Elsa : 301
-Robin : 300
-Elsa : 300
-Robin : 303
-Tibi : 300
-Tim : 301
-Elsa : 301
-Tim : 301
-Robin : 300
-Tibi : 300
-Robin : 300
-Elsa : 302
-Tibi : 300
-Tim : 300
-Elsa : 301
-Robin : 300
-Tim : 301
-Tibi : 300
-Robin : 300
-Elsa : 300
-Tibi : 300
-Tim : 300
-Elsa : 300
-Tim : 300
-Tibi : 300
-Robin : 300
-Tibi : 303
-Elsa : 301
-Robin : 300
-Tim : 301
-Tim : 302
-Elsa : 300
-Tibi : 300
-Robin : 300
-Tibi : 300
-Tim : 300
-Robin : 300
-Elsa : 302
-Tibi : 300
-Tim : 301
-Elsa : 301
-Robin : 300
-Tim : 301
-Robin : 300
-Elsa : 301
-Tibi : 300
-Elsa : 300
-Tibi : 300
-Tim : 300
-Robin : 300
-Tibi : 300
-Robin : 302
-Elsa : 300
-Tim : 301
-Tibi : 300
-Tim : 300
-Elsa : 300
-Robin : 300
-Tim : 302
-Tibi : 300
-Robin : 302
-Elsa : 300
-Elsa : 301
-Robin : 303
-Tim : 301
-Tibi : 300
-Tibi : 300
-Elsa : 301
-Tim : 302
-Robin : 301
-Tibi : 300
-Elsa : 300
-Robin : 301
-Tim : 300
-Robin : 301
-Tibi : 300
-Elsa : 300
-Tim : 301
-Tibi : 300
-Tim : 300
-Robin : 301
-Elsa : 300
+Tibi : 301 nb closed nodes = 120
+Robin : 302 nb closed nodes = 120
+Tim : 302 nb closed nodes = 120
+Elsa : 300 nb closed nodes = 120
+Tibi : 201 nb closed nodes = 120
+Tim : 201 nb closed nodes = 120
+Robin : 202 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Robin : 151 nb closed nodes = 120
+Tim : 150 nb closed nodes = 120
+Elsa : 151 nb closed nodes = 120
+Tibi : 151 nb closed nodes = 120
+Robin : 94 nb closed nodes = 121
+Tibi : 108 nb closed nodes = 121
+Tim : 128 nb closed nodes = 121
+Elsa : 150 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Elsa : 201 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 95 nb closed nodes = 110
+Tibi : 106 nb closed nodes = 110
+Robin : 117 nb closed nodes = 110
+Tim : 148 nb closed nodes = 110
+Elsa : 202 nb closed nodes = 109
+Tim : 200 nb closed nodes = 109
+Robin : 201 nb closed nodes = 109
+Tibi : 200 nb closed nodes = 109
+Elsa : 200 nb closed nodes = 5
+Tim : 200 nb closed nodes = 4
+Robin : 200 nb closed nodes = 5
+Tibi : 8 nb closed nodes = 7
+Tim : 13 nb closed nodes = 7
+Robin : 14 nb closed nodes = 7
+Elsa : 15 nb closed nodes = 7
+Elsa : 200 nb closed nodes = 4
+Robin : 200 nb closed nodes = 5
+Tim : 200 nb closed nodes = 5
+Robin : 8 nb closed nodes = 7
+Tibi : 8 nb closed nodes = 6
+Tim : 13 nb closed nodes = 7
+Elsa : 13 nb closed nodes = 7
+Elsa : 200 nb closed nodes = 5
+Robin : 200 nb closed nodes = 5
+Tim : 201 nb closed nodes = 4
+Robin : 200 nb closed nodes = 5
+Tim : 201 nb closed nodes = 5
+Elsa : 200 nb closed nodes = 6
+Tibi : 200 nb closed nodes = 6
+Tim : 13 nb closed nodes = 7
+Tibi : 13 nb closed nodes = 7
+Elsa : 29 nb closed nodes = 7
+Robin : 31 nb closed nodes = 7
+Elsa : 200 nb closed nodes = 6
+Robin : 201 nb closed nodes = 6
+Tim : 200 nb closed nodes = 6
+Tibi : 201 nb closed nodes = 6
+Tibi : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tim : 201 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Elsa : 201 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Robin : 202 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tibi : 202 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Robin : 201 nb closed nodes = 120
+Tibi : 201 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Elsa : 201 nb closed nodes = 120
+Tim : 201 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 119
+Elsa : 200 nb closed nodes = 120
+Tibi : 202 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tim : 201 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 201 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Tim : 202 nb closed nodes = 120
+Elsa : 201 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Elsa : 202 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Robin : 202 nb closed nodes = 120
+Tibi : 201 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tim : 202 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Elsa : 201 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Tibi : 201 nb closed nodes = 120
+Tim : 201 nb closed nodes = 120
+Robin : 202 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tibi : 200 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Robin : 201 nb closed nodes = 120
+Tim : 201 nb closed nodes = 120
+Tibi : 201 nb closed nodes = 120
+Elsa : 200 nb closed nodes = 120
+Tim : 200 nb closed nodes = 120
+Robin : 200 nb closed nodes = 120

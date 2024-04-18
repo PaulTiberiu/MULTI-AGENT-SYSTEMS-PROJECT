@@ -254,6 +254,58 @@ public class MapRepresentation implements Serializable {
 		return getShortestPath(myPosition,closest.get().getLeft());
 	}
 
+	public List<String> getShortestPathToClosestOpenNodeWithoutPassing(String myPosition, String nodeToAvoid){
+		Stream<Edge> edges_stream = g.getNode(nodeToAvoid).edges();
+		List<Edge> edges_list = edges_stream.collect(Collectors.toList());
+		List<Couple<String, Couple<Node, Node>>> edges = new ArrayList<Couple<String, Couple<Node, Node>>>();
+		if (edges_list.size()>0){
+			for(Edge edge : edges_list) {
+				Edge e = g.getEdge(edge.getId());
+				if (e!=null) {
+					edges.add(new Couple<String, Couple<Node, Node>>(edge.getId(), new Couple<Node, Node>(edge.getNode0(), edge.getNode1())));
+					g.removeEdge(e);
+				}
+			}
+		}
+		g.removeNode(nodeToAvoid);
+
+		//1) Get all openNodes
+		List<String> opennodes=getOpenNodes();
+
+		//2) select the closest one
+		List<Couple<String,Integer>> lc=
+				opennodes.stream()
+				.map(on -> (getShortestPath(myPosition,on)!=null)? new Couple<String, Integer>(on,getShortestPath(myPosition,on).size()): new Couple<String, Integer>(on,Integer.MAX_VALUE))//some nodes my be unreachable if the agents do not share at least one common node.
+				.collect(Collectors.toList());
+
+		Optional<Couple<String,Integer>> closest=lc.stream().min(Comparator.comparing(Couple::getRight));
+		//3) Compute shorterPath
+
+
+		Node node = g.getNode(nodeToAvoid);
+		if (node == null) {
+			g.addNode(nodeToAvoid);
+			node = g.getNode(nodeToAvoid);
+			node.clearAttributes();
+			node.setAttribute("ui.class", MapAttribute.open.toString());
+			node.setAttribute("ui.label",nodeToAvoid);
+		}
+
+		for(Couple<String, Couple<Node, Node>> edge : edges){
+			if(g.getEdge(edge.getLeft())==null){
+				g.addEdge(edge.getLeft(),edge.getRight().getLeft().getId(), edge.getRight().getRight().getId());
+			}
+		}
+
+		try {
+			closest.get();
+		} catch (Exception e) {
+			return null;
+		}
+		
+		return getShortestPath(myPosition,closest.get().getLeft());
+	}
+
 
 	public List<String> getOpenNodes(){
 		return this.g.nodes()
@@ -503,5 +555,8 @@ public class MapRepresentation implements Serializable {
 		this.g.removeEdge(edge);
 	}
 
+	public Edge getEdge(String left) {
+		return this.g.getEdge(left);
+	}
 
 }
