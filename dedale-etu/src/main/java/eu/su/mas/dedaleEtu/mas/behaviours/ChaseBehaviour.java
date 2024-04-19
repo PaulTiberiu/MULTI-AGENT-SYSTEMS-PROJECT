@@ -546,7 +546,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                             gsLocation stench = stenches_copy.get(i);
                             if (!next_allies_pos.contains(stench.getLocationId()) && !allies_pos.contains(stench.getLocationId()) && !stench.getLocationId().equals(((ExploreFSMAgent) myAgent).getLastVisitedNode())){
                                 // I smell a stench and my allies are not moving to it and are not on it
-                                System.out.println(myAgent.getLocalName()+" I chosed randomly this stench : "+stench.getLocationId());
+                                System.out.println(myAgent.getLocalName()+" I chose randomly this stench : "+stench.getLocationId());
                                 move = stench;
                                 break;
                             }
@@ -624,7 +624,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     for(int i=random.nextInt(0,stenches_copy.size()); stenches_copy.size()>1; i=random.nextInt(0,stenches_copy.size())){
                         gsLocation stench = stenches_copy.get(i);
                         if(((ExploreFSMAgent)myAgent).getLastVisitedNode() == null || !((ExploreFSMAgent)myAgent).getLastVisitedNode().equals(stench.getLocationId())){
-                            System.out.println(myAgent.getLocalName()+" I chosed randomly this stench : "+stench.getLocationId());
+                            System.out.println(myAgent.getLocalName()+" I chose randomly this stench : "+stench.getLocationId());
                             move = stench;
                         }
                         stenches_copy.remove(i);

@@ -73,16 +73,12 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
     @Override
 	public void action() {
-        try {
-            Thread.sleep(500);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         exitValue = 0;
 
         List<String> pathToCorner = ((ExploreFSMAgent) this.myAgent).getPathToCorner();
         this.myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
-        
+        Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
+       
         // I know the golem's position because I blocked him
         gsLocation golemPosition = ((ExploreFSMAgent) this.myAgent).getGolemPosition();
 
@@ -114,18 +110,41 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
             ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
             System.out.println(myAgent.getLocalName()+" ON A BLOQUE LE GOLEM GG JE PASSE EN CHASE POUR CHASSER UN AUTRE\n");
-            try {
-                Thread.sleep(1000000);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             return;
+        }
+
+        List<Edge> ed = this.myMap.getNode(golemPosition.getLocationId()).edges().collect(Collectors.toList());
+        List<String> listG = new ArrayList<String>();
+        for(Edge e : ed){
+            if(e.getNode0().getId().compareTo(golemPosition.getLocationId())==0){
+                listG.add(e.getNode1().getId());
+            }
+            else{
+                listG.add(e.getNode0().getId());
+            }
+        }
+
+        listG.remove(myPosition.getLocationId());
+        int cmpt = 0;
+
+        // if(((ExploreFSMAgent) myAgent).getToCornerTeam()==null){
+            check(listG, myPosition);
+        // }
+
+        System.out.println(myAgent.getLocalName()+" Ok fine, my team in the ToCorner is "+((ExploreFSMAgent) myAgent).getToCornerTeam());
+
+        try {
+            Thread.sleep(500); // We wait for everyone to finish the treatment of the messages
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         
         leader = myAgent.getLocalName();
-        for (String agentName : receivers) {
-            if(agentName.compareTo(leader) < 0) {
-                leader = agentName;
+        if(((ExploreFSMAgent) myAgent).getToCornerTeam().size() > 0) {
+            for (String agentName : ((ExploreFSMAgent) myAgent).getToCornerTeam()) {
+                if(agentName.compareTo(leader) < 0) {
+                    leader = agentName;
+                }
             }
         }
 
@@ -133,6 +152,12 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 			MessageTemplate.MatchProtocol("PATH"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage received_path_leader=this.myAgent.receive(received_path_template);
+
+        try {
+            myAgent.doWait(1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if(received_path_leader != null && pathToCorner == null){
             try {
@@ -208,24 +233,54 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
         pathToCorner = ((ExploreFSMAgent) myAgent).getPathToCorner();
 
-        Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
-
-        if(pathToCorner!=null){
+        if(pathToCorner!=null && pathToCorner.size()>0){
 
             // To chose the node to move to, we need to communicate to make sure we will block the golem on the next node
             // To do so, we will take a node at the edge of the next position in the path and we will check if everyone can move to an edge with only 1 move
             // If there is not enough edges to the next node, someone will have to follow us
 
             boolean searching = true;
+            cmpt=0;
 
             while(searching){
                 try {
                     for(int i=0; i<receivers.size(); i++) {
-                        myAgent.doWait(1000);
+                        myAgent.doWait(500);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                if(cmpt>=20){
+                    exitValue = 1;
+                    return; 
+                }
+
+                System.out.println(myAgent.getLocalName()+" cmpt = "+cmpt);
+
+                MessageTemplate mess=MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("STOP"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                ACLMessage messageRecept=this.myAgent.receive(mess);
+
+                if(messageRecept!=null){
+                    searching = false;
+
+                    try {
+                        @SuppressWarnings("unchecked")
+                        ArrayList<Couple<String, String>> moves = (ArrayList<Couple<String, String>>) messageRecept.getContentObject();
+                        System.out.println(myAgent.getLocalName() + " MOVES = " + moves);
+                        for(Couple<String, String> m : moves){
+                            if(m.getLeft().compareTo(myAgent.getLocalName())==0){
+                                ((ExploreFSMAgent) myAgent).setNextMove(new gsLocation(m.getRight()));
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    continue;
+                }
+
 
                 MessageTemplate msgT=MessageTemplate.and(
                     MessageTemplate.MatchProtocol("EDGE"),
@@ -235,8 +290,12 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 List<String> edges_occupied = new ArrayList<String>();
                 List<String> senders = new ArrayList<String>();
                 List<Boolean> ends = new ArrayList<Boolean>();
+                ArrayList<Couple<String, String>> moves = new ArrayList<Couple<String, String>>();
+
+                int cmptMsg = 0;
 
                 while(msgR!=null){
+                    myAgent.doWait(100);
                     try {
                         if(!senders.contains(msgR.getSender().getLocalName())){
                             System.out.println(myAgent.getLocalName()+" I received "+((PathInfo) msgR.getContentObject()).getPath()+" from "+msgR.getSender().getLocalName());
@@ -249,11 +308,25 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                                 ends.add(true);
                             }
                             senders.add(msgR.getSender().getLocalName());
+                            cmptMsg++;
+                             moves.add(new Couple<String, String>(msgR.getSender().getLocalName(), (((PathInfo) msgR.getContentObject()).getPath().get(0))));
                         }
                         msgR=this.myAgent.receive(msgT);
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
+                }
+
+                if(cmptMsg<((ExploreFSMAgent)myAgent).getToCornerTeam().size()){
+                    try {
+                        Thread.sleep(100);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if(cmptMsg==0){
+                    ends.add(false);
                 }
 
                 if(!ends.contains(false) && ((ExploreFSMAgent) myAgent).getMovesToCorner()==null){
@@ -303,16 +376,49 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 String move = null;
 
                 if(reachable.size()==0){
-                    System.out.println("\n\nJE PASSE EN CHASE MODE\n\n");
+                    exitValue = 1;
+                    return;
+                }
+                else if(ln.size()>0 && ln.size()<(((ExploreFSMAgent) myAgent).getToCornerTeam().size()+1) && reachable.size()<ln.size()){
+                    for(String reach : reachable){
+                        if(edges_occupied.contains(reach)){
+                            if(move == null){
+                                move = myPosition.getLocationId();
+                            }
+                        }
+                        else{
+                            move = reach;
+                        }
+                    }
                 }
                 else if(reachable.size()==1) {
-                    move = reachable.get(0);
+                    if(myPosition.getLocationId().compareTo(pathToCorner.get(0))==0){
+                        if(reachable.get(0).compareTo(golemPosition.getLocationId())==0){
+                            move = reachable.get(1);
+                        }
+                        else{
+                            move = reachable.get(0);
+                        }
+                    }
+                    else{
+                        move = reachable.get(0);
+                    }
                 }
                 else{
                     for(String reach : reachable){
                         if(edges_occupied.contains(reach)){
                             if(move == null){
-                                move = reach;
+                                if(myPosition.getLocationId().compareTo(pathToCorner.get(0))==0){
+                                    if(reach.compareTo(golemPosition.getLocationId())==0){
+                                        move = null;
+                                    }
+                                    else{
+                                        move = reach;
+                                    }
+                                }
+                                else{
+                                    move = reach;
+                                }
                             }
                         }
                         else{
@@ -339,11 +445,32 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     done = true;
                 }
 
+                edges_occupied.remove(move);
                 ends.removeAll(List.of(false));
 
-                if(done == true && ends.size() == ln.size()-1){
+                if(leader.compareTo(myAgent.getLocalName())==0){
+                    System.out.println("Ends = "+ends);
+                }
+
+                if(done == true && ends.size() >= ln.size()-1 && leader.compareTo(myAgent.getLocalName())==0){  // Only the leader chose when we stop
                     searching = false;
+
                     ((ExploreFSMAgent) myAgent).setNextMove(new gsLocation(move));
+
+                    ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+                    message.setProtocol("STOP");
+                    message.setSender(this.myAgent.getAID());
+
+                    for (String agentName : receivers) {
+                        message.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+                    }
+                    try {
+                        message.setContentObject(moves);
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(myAgent.getLocalName()+" I am sending "+moves+" to "+receivers);
+                    ((AbstractDedaleAgent)this.myAgent).sendMessage(message);
                 }
 
                 ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
@@ -367,6 +494,23 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 }
                 System.out.println(myAgent.getLocalName()+" I am sending "+move+" "+done+" to "+receivers);
                 ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
+                cmpt++;
+            }
+
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            MessageTemplate msgT=MessageTemplate.and(
+                MessageTemplate.MatchProtocol("EDGE"),
+                MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+            ACLMessage msgR=this.myAgent.receive(msgT);
+
+            while(msgR!=null){   // I have to delete the message or I will have fake infos for the next input
+                msgR=this.myAgent.receive(msgT);
+                System.out.println(myAgent.getLocalName()+" Deleting future fakes infos");
             }
 
             gsLocation move = ((ExploreFSMAgent) myAgent).getNextMove();
@@ -374,23 +518,45 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             System.out.println("\n\n\n"+myAgent.getLocalName()+" I will move to "+move.getLocationId()+"\n\n\n");
 
             boolean moved = false;
+            cmpt = 0;
+
             while(!moved){
-                try {
-                    Thread.sleep(500);
-                } catch (Exception e) {
-                    
-                }
+                System.out.println(myAgent.getLocalName()+" my position = "+myPosition+" golemPosition = "+golemPosition);
+
                 //If I am on the path of the golem, then I have to move to let him go to the corner
                 if (myPosition.getLocationId().equals(pathToCorner.get(0))) {
                     System.out.println(myAgent.getLocalName()+" I am on the path of the golem, I have to move");
                     moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
+                    if(moved==false){
+                        System.out.println(myAgent.getLocalName()+" J AI PAS REUSSI A ALLER SUR "+move);
+                    }
+
+                    MessageTemplate msgTemp=MessageTemplate.and(
+                        MessageTemplate.MatchProtocol("MOVE"),
+                        MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                    ACLMessage msg=this.myAgent.receive(msgTemp);
+
+                    while(msg==null){
+                        try {
+                            myAgent.doWait(1000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        msg=this.myAgent.receive(msgTemp);
+
+                        if(cmpt >= 25){
+                            exitValue = 1;
+                            return;
+                        }
+                        cmpt++;
+                    }
                 }
 
                 // I am not on the path of the golem and I dont go into him, so I'll have to block him, I am an edge blocker
                 else if (!move.equals(golemPosition)){
                     System.out.println(myAgent.getLocalName()+" I am an edge blocker, I am waiting for a msg");
                     try {
-                        myAgent.doWait(100);
+                        myAgent.doWait(200);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -403,12 +569,27 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     if(msg!=null){
                         System.out.println(myAgent.getLocalName()+" I received a message I'll move");
                         moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
+                        if(moved == false){
+                            System.out.println("\n\n"+myAgent.getLocalName()+" Have been really slow "+"\n\n");
+                        }
+                    }
+                    else{
+                        if(cmpt>=100){
+                            exitValue = 1;
+                            return;
+                        }
+                        cmpt++;
                     }
                 }
 
                 // I am on the path of the golem and I go into him so I will notify the edges blocker to move !
                 else{
-                    System.out.println(myAgent.getLocalName()+" I am trying to move to te golem, if it works, it means he moved so I will notify the edges blocker");
+                    try {
+                        Thread.sleep(100);
+                    } catch (Exception e) {
+                        
+                    }
+                    System.out.println(myAgent.getLocalName()+" I am trying to move to te golem, if it works, it means he moved");
                     moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
                     if(moved){
                         System.out.println(myAgent.getLocalName()+" I notify the edges blocker to move");
@@ -420,6 +601,13 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                             msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
                         }
                         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
+                    }
+                    else{
+                        if(cmpt>=200){
+                            exitValue = 1;
+                            return;
+                        }
+                        cmpt++;
                     }
                 }
             }
@@ -435,11 +623,86 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 
             }
         }
+        else{
+            System.out.println(myAgent.getLocalName()+" PathToCorner = "+pathToCorner);
+        }
+    }
 
+    private void check(List<String> listG, Location myPosition){
+        MessageTemplate mTemplate=MessageTemplate.and(
+			MessageTemplate.MatchProtocol("HERE"),
+			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage mRecept=this.myAgent.receive(mTemplate);
+
+        List<String> team = new ArrayList<String>();
+        int cmpt = 0;
+ 
+        while(listG.size()>0){
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            System.out.println(myAgent.getLocalName()+" Is everyone in the ToCornerBehaviour ?");
+            
+            mRecept=this.myAgent.receive(mTemplate);
+            while(mRecept!=null){
+                try {
+                    if(listG.contains(((Location)mRecept.getContentObject()).getLocationId())){
+                        if(listG.remove(((Location)mRecept.getContentObject()).getLocationId())){
+                            team.add(mRecept.getSender().getLocalName());
+                            System.out.println(myAgent.getLocalName()+" I recept HERE from "+mRecept.getSender().getLocalName());
+                        }
+                    }
+                } catch (UnreadableException e) {
+                    e.printStackTrace();
+                }
+                mRecept=this.myAgent.receive(mTemplate);
+            }
+
+            if(cmpt >= 25){
+                System.out.println(myAgent.getLocalName()+" I think we are not enough in the ToCornerBehaviour");
+                exitValue = 1;
+                return;
+            }
+
+            cmpt++;
+
+            ACLMessage msgHere = new ACLMessage(ACLMessage.INFORM);
+            msgHere.setProtocol("HERE");
+            msgHere.setSender(this.myAgent.getAID());
+
+            for (String agentName : receivers) {
+                msgHere.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+            }
+            try {
+                msgHere.setContentObject(myPosition);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            ((AbstractDedaleAgent)this.myAgent).sendMessage(msgHere);
+
+            System.out.println(myAgent.getLocalName()+" I send HERE to "+receivers);
+        }
+
+        ((ExploreFSMAgent)myAgent).setToCornerTeam(team);
     }
 
 	@Override
 	public int onEnd(){
+
+        if(exitValue == 1){
+            System.out.println(myAgent.getLocalName()+" I go back to the Chase");
+            ((ExploreFSMAgent)myAgent).setToCornerTeam(null);
+            ((ExploreFSMAgent)myAgent).setPathToCorner(null);
+            ((ExploreFSMAgent)myAgent).setMovesToCorner(null);
+
+            for(int i=0; i<50; i++){   // we delete all the messages from the msg queue
+                this.myAgent.receive();
+            }
+        }
+
 		return exitValue;
 	}
 

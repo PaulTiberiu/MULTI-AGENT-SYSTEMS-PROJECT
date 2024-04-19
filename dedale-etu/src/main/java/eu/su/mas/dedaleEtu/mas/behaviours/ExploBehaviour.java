@@ -198,7 +198,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 					((ExploreFSMAgent) myAgent).setNextNode(myNextNode);
 					boolean moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(move));
 
-					int c = lobs.size();
+					int c = lobs.size()-1;
 					List<String> path = new ArrayList<String>();
 
 					while(!moved){
@@ -220,7 +220,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(new gsLocation(move));
 						}
 
-						else if (c >= lobs.size()){
+						else if (c <= 0){
 							moved = ((AbstractDedaleAgent)this.myAgent).moveTo(myPosition);
 							move = myPosition.getLocationId();
 						}

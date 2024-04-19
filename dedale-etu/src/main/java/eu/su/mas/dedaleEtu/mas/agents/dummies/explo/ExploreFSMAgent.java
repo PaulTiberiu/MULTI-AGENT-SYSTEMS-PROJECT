@@ -43,6 +43,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private List<String> pathToCorner;
 	private List<Couple<String, Couple<String, List<Couple<Location, List<Couple<Observation, Integer>>>>>>> sendersInfos;
 	private List<String> movesToCorner = null;
+	private List<String> toCornerTeam = null;
 	
 	/************************************************
 	* 
@@ -341,6 +342,14 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 
 	public void setNextNode(String nextNode){
         this.nextNode = nextNode;
+    }
+
+	public List<String> getToCornerTeam(){
+		return this.toCornerTeam;
+	}
+
+	public void setToCornerTeam(List<String> toCornerTeam){
+        this.toCornerTeam = toCornerTeam;
     }
 
 }
