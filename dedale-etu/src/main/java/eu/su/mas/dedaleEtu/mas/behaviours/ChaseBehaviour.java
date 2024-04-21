@@ -20,9 +20,10 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Collections;
-
+import org.graphstream.graph.Edge;
 
 public class ChaseBehaviour extends SimpleBehaviour {
     private static final long serialVersionUID = 8567689731496787661L;
@@ -59,6 +60,45 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
         System.out.println(this.myAgent.getLocalName()+" -- myCurrentPosition is: "+myPosition);
+
+        MessageTemplate Templatemsg=MessageTemplate.and(
+			MessageTemplate.MatchProtocol("LEAVE"),
+			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+		ACLMessage msgReception=this.myAgent.receive(Templatemsg);
+
+		if(msgReception!=null){
+            // If I receive a message to chase another golem, and I am not adjacent to the golem, I am passing to chaseBehaviour
+            System.out.println("I HAVE TO LEAVE !");
+            ((ExploreFSMAgent) myAgent).setBlock(false);
+
+            try {
+                ((ExploreFSMAgent)myAgent).setGolemPosition(new gsLocation((String) msgReception.getContentObject()));
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
+            golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
+            if(golemPosition!=null){
+                Set<String> edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                List<String> removed = new ArrayList<String>();
+                if(edges!=null && edges.size()>0){
+                    for(String edge : edges){
+                        removed.add(edge);
+                        List<Edge> links = this.myMap.getNode(edge).edges().collect(Collectors.toList());
+                        for(Edge link : links){
+                            this.myMap.removeEdge(link);
+                        }
+                        this.myMap.removeNode(edge);
+                    }
+                }
+                removed.add(golemPosition.getLocationId());
+                this.myMap.removeNode(golemPosition.getLocationId());       // NE PAS RE SUPPR -> TESTER SI C DEJA FAIT
+                System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
+            }
+            ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
+            System.out.println(myAgent.getLocalName()+" JE CONTINUE DE CHASSER\n");
+        }
+
 
         MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("PING"),

@@ -1,6 +1,8 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.util.Iterator;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,10 +20,8 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.AgentInfo;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.PathInfo;
-import eu.su.mas.dedaleEtu.mas.knowledge.ChaseInfos;
 
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
@@ -92,7 +92,12 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             System.out.println("THEY TOLD ME TO LEAVE !!");
             exitValue = 1;
             ((ExploreFSMAgent) myAgent).setBlock(false);
-            
+
+            try {
+                ((ExploreFSMAgent)myAgent).setGolemPosition(new gsLocation((String) msgRecept.getContentObject()));
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
             Set<String> edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
             List<String> removed = new ArrayList<String>();
             if(edges!=null && edges.size()>0){
@@ -127,11 +132,11 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         listG.remove(myPosition.getLocationId());
         int cmpt = 0;
 
-        // if(((ExploreFSMAgent) myAgent).getToCornerTeam()==null){
         check(listG, myPosition);
-        // }
 
-        System.out.println(myAgent.getLocalName()+" Ok fine, my team in the ToCorner is "+((ExploreFSMAgent) myAgent).getToCornerTeam());
+        List<String> team = ((ExploreFSMAgent) myAgent).getToCornerTeam();
+
+        System.out.println(myAgent.getLocalName()+" Ok fine, my team in the ToCorner is "+team);
 
         try {
             Thread.sleep(500); // We wait for everyone to finish the treatment of the messages
@@ -150,13 +155,13 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         }
         
         
-        if(((ExploreFSMAgent) myAgent).getToCornerTeam()==null) {
+        if(team==null) {
             System.out.println("I LEAVE HERE 7");
             return;
         }
 
         leader = myAgent.getLocalName();
-        for (String agentName : ((ExploreFSMAgent) myAgent).getToCornerTeam()) {
+        for (String agentName : team) {
             if(agentName.compareTo(leader) < 0) {
                 leader = agentName;
             }
@@ -234,7 +239,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             msg_path.setProtocol("PATH");
             msg_path.setSender(this.myAgent.getAID());
 
-            for (String agentName : receivers) {
+            for (String agentName : team) {
                 msg_path.addReceiver(new AID(agentName, AID.ISLOCALNAME));
             }
             try {
@@ -256,278 +261,446 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             // To do so, we will take a node at the edge of the next position in the path and we will check if everyone can move to an edge with only 1 move
             // If there is not enough edges to the next node, someone will have to follow us
 
-            boolean searching = true;
-            cmpt=0;
+            List<Edge> es = this.myMap.getNode(pathToCorner.get(0)).edges().collect(Collectors.toList());
+            List<String> ln = new ArrayList<String>();
+            for(Edge e : es){
+                if(e.getNode0().getId().compareTo(pathToCorner.get(0))==0){
+                    ln.add(e.getNode1().getId());
+                }
+                else{
+                    ln.add(e.getNode0().getId());
+                }
+            }
 
-            while(searching){
+            List<String> reachable = new ArrayList<String>();   // Reachables around the next node in the path by only one move
+
+            for(String n : ln){
+                for (Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
+                    if (obs.getLeft().getLocationId().compareTo(n)==0){ // Reachable by only one move
+                        reachable.add(n);
+                    }
+                }
+            }
+
+            // Leader receive other agents informations
+
+            if (leader.compareTo(this.myAgent.getLocalName())!=0){
+                List<String> l = new ArrayList<String>();
+
+                l.add(myPosition.getLocationId());
+                l.addAll(reachable);
+
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                msg.setProtocol("EDGE");
+                msg.setSender(this.myAgent.getAID());
+                msg.addReceiver(new AID(leader, AID.ISLOCALNAME));
+                
                 try {
-                    for(int i=0; i<receivers.size(); i++) {
-                        myAgent.doWait(500);
+                    msg.setContentObject(new PathInfo(l));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(myAgent.getLocalName()+" I am sending my postion "+myPosition+" and my reachables "+reachable+" to "+leader);
+                ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
+
+                MessageTemplate mess=MessageTemplate.and(
+                    MessageTemplate.MatchProtocol("MOVE"),
+                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+                ACLMessage messageRecept=this.myAgent.receive(mess);
+
+                while(messageRecept == null){
+                    try {
+                        myAgent.doWait(1000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    messageRecept=this.myAgent.receive(mess);
+                }
+
+                // Catch the message and the move sent by the leader
+                String move;
+                try {
+                    move = (String) messageRecept.getContentObject();
+                    if(move == null){
+                        ((ExploreFSMAgent)myAgent).setNextMove((gsLocation) myPosition);
+                    }
+                    else{
+                        ((ExploreFSMAgent)myAgent).setNextMove(new gsLocation(move));
+                    }
+                } catch (UnreadableException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            else{
+                try {
+                    for(int i=0; i<team.size(); i++) {
+                        myAgent.doWait(1000);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
 
-                if(cmpt>=20){
-                    exitValue = 1;
-                    System.out.println("I AM LEAVING HERE");
-                    return; 
-                }
+                List<Couple<String,List<String>>> reachables = new ArrayList<Couple<String,List<String>>>();
+                List<Couple<String,String>> positions = new ArrayList<Couple<String,String>>();
 
-                System.out.println(myAgent.getLocalName()+" cmpt = "+cmpt);
-
-                MessageTemplate mess=MessageTemplate.and(
-                    MessageTemplate.MatchProtocol("STOP"),
-                    MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-                ACLMessage messageRecept=this.myAgent.receive(mess);
-
-                if(messageRecept!=null){
-                    searching = false;
-
-                    try {
-                        @SuppressWarnings("unchecked")
-                        ArrayList<Couple<String, String>> moves = (ArrayList<Couple<String, String>>) messageRecept.getContentObject();
-                        System.out.println(myAgent.getLocalName() + " MOVES = " + moves);
-                        for(Couple<String, String> m : moves){
-                            if(m.getLeft().compareTo(myAgent.getLocalName())==0){
-                                ((ExploreFSMAgent) myAgent).setNextMove(new gsLocation(m.getRight()));
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    continue;
-                }
-
+                int nbmsg = 0;
 
                 MessageTemplate msgT=MessageTemplate.and(
                     MessageTemplate.MatchProtocol("EDGE"),
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                 ACLMessage msgR=this.myAgent.receive(msgT);
 
-                List<String> edges_occupied = new ArrayList<String>();
-                List<String> senders = new ArrayList<String>();
-                List<Boolean> ends = new ArrayList<Boolean>();
-                ArrayList<Couple<String, String>> moves = new ArrayList<Couple<String, String>>();
-
-                int cmptMsg = 0;
-
-                while(msgR!=null){
-                    myAgent.doWait(100);
+                while(nbmsg<team.size()){
                     try {
-                        if(!senders.contains(msgR.getSender().getLocalName())){
-                            System.out.println(myAgent.getLocalName()+" I received "+((PathInfo) msgR.getContentObject()).getPath()+" from "+msgR.getSender().getLocalName());
-                            edges_occupied.add((((PathInfo) msgR.getContentObject()).getPath().get(0)));
-                            if(((PathInfo) msgR.getContentObject()).getPath().get(1).compareTo("true")!=0){
-                                ends.add(false);
-                                ((ExploreFSMAgent) myAgent).setMovesToCorner(null);
-                            }
-                            else{
-                                ends.add(true);
-                            }
-                            senders.add(msgR.getSender().getLocalName());
-                            cmptMsg++;
-                             moves.add(new Couple<String, String>(msgR.getSender().getLocalName(), (((PathInfo) msgR.getContentObject()).getPath().get(0))));
-                        }
-                        msgR=this.myAgent.receive(msgT);
-                    } catch (UnreadableException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if(cmptMsg<((ExploreFSMAgent)myAgent).getToCornerTeam().size()){
-                    try {
-                        Thread.sleep(100);
+                        myAgent.doWait(1000);   
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+
+
+                    System.out.println(myAgent.getLocalName()+" I got a message from "+msgR.getSender().getLocalName());
+                    try {
+                        PathInfo pathInfo = (PathInfo) msgR.getContentObject();
+                        String pos = pathInfo.getPath().get(0);
+                        List<String> reach = pathInfo.getPath();
+                        reach.remove(0);
+                        reachables.add(new Couple<String, List<String>>(msgR.getSender().getLocalName(), reach));
+                        positions.add(new Couple<String, String>(msgR.getSender().getLocalName(), pos));
+                        System.out.println(myAgent.getLocalName()+" I got his position = "+pos+" and is reach = "+reach);
+                        nbmsg++;
+                    } catch (UnreadableException e) {
+                        e.printStackTrace();
+                    }
+                    msgR=this.myAgent.receive(msgT);
                 }
 
-                if(cmptMsg==0){
-                    ends.add(false);
-                }
+                // Calcul the moves
 
-                if(!ends.contains(false) && ((ExploreFSMAgent) myAgent).getMovesToCorner()==null){
-                    ((ExploreFSMAgent) myAgent).setMovesToCorner(edges_occupied);
-                    System.out.println(myAgent.getLocalName()+" I stock "+edges_occupied);
-                }
-                else if(!ends.contains(false) && ((ExploreFSMAgent) myAgent).getMovesToCorner()!=null){
-                    List<String> movesToCorner = ((ExploreFSMAgent) myAgent).getMovesToCorner();
-                    System.out.println(myAgent.getLocalName()+" I added my stock = "+ movesToCorner+" to edges_occupied = "+edges_occupied);
-                    for(String m : movesToCorner){
-                        if(!edges_occupied.contains(m)){
-                            edges_occupied.add(m);
+                reachables.add(new Couple<String, List<String>>(myAgent.getLocalName(), reachable));
+                positions.add(new Couple<String, String>(myAgent.getLocalName(), myPosition.getLocationId()));
+
+                List<Couple<String,String>> moves = new ArrayList<Couple<String,String>>(); // list of (name,nextmove)
+                List<Couple<String, String>> toRemove = new ArrayList<Couple<String, String>>();
+
+                for(Couple<String, List<String>> couple : reachables){
+                    List<String> reach = couple.getRight();
+                    String name = couple.getLeft();
+                    boolean m = false;
+
+                    String pos = null;
+                    for(Couple<String, String> c : positions){
+                        if(c.getLeft().compareTo(name)==0){
+                            pos = c.getRight();
+                        }
+                    }
+
+                    List<String> other_reachables = new ArrayList<String>();
+                    for(Couple<String, List<String>> pairs : reachables){
+                        if(!pairs.equals(couple)){
+                            other_reachables.addAll(pairs.getRight());
                         }
                     }
                 }
+
+                //     if(reach.size()==0){
+                //         moves.add(new Couple<String, String>(name, pos));   // Don't move
+                //     }
+                //     else if(reach.size()==1) {
+                //         moves.add(new Couple<String, String>(name, reach.get(0)));  // Move on the only reachable you have
+                //     }
+                //     else{
+                //         for(String r : reach){
+                //             moves.removeAll(toRemove);
+                //             toRemove.clear();
+                //             if(!other_reachables.contains(r)){
+                //                 if(pos.compareTo(pathToCorner.get(0))==0){
+                //                     if(pathToCorner.size()>1){
+                //                         if(r.compareTo(pathToCorner.get(1))!=0){
+                //                             if(m == true){
+                //                                 for(Couple<String, String> c : moves){
+                //                                     if(c.getLeft().compareTo(name)==0){
+                //                                         toRemove.add(c);
+                //                                     }
+                //                                 }
+                //                             }
+                //                             moves.add(new Couple<String, String>(name, r));
+                //                             m = true;
+                //                         }
+                //                         else if(m == false){
+                //                             moves.add(new Couple<String, String>(name, r));
+                //                             m = true;                                         
+                //                         }
+                //                     }
+                //                     else{
+                //                         if(m == true){
+                //                             for(Couple<String, String> c : moves){
+                //                                 if(c.getLeft().compareTo(name)==0){
+                //                                     toRemove.add(c);
+                //                                 }
+                //                             }
+                //                         }
+                //                         moves.add(new Couple<String, String>(name, r));
+                //                         m = true;
+                //                     }
+                //                 }
+                //                 else{
+                //                     if(m == true){
+                //                         for(Couple<String, String> c : moves){
+                //                             if(c.getLeft().compareTo(name)==0){
+                //                                 toRemove.add(c);
+                //                             }
+                //                         }
+                //                     }
+                //                     moves.add(new Couple<String, String>(name, r));
+                //                     m = true;
+                //                 }
+                //             }
+                //             else if(pos.compareTo(pathToCorner.get(0))==0){
+                //                 if(pathToCorner.size()>1){
+                //                     if(r.compareTo(pathToCorner.get(1))!=0){
+                //                         if(m == true){
+                //                             for(Couple<String, String> c : moves){
+                //                                 if(c.getLeft().compareTo(name)==0){
+                //                                     toRemove.add(c);
+                //                                 }
+                //                             }
+                //                         }
+                //                         moves.add(new Couple<String, String>(name, r));
+                //                         m = true;
+                //                     }
+                //                 }
+                //                 else if (m == false){
+                //                     moves.add(new Couple<String, String>(name, r));
+                //                     m = true;
+                //                 }
+                //             }
+                //         }
+
+                //         if(m == false){
+                //             if(pos.compareTo(pathToCorner.get(0))==0){
+                //                 for(String r : reach){
+                //                     if(r.compareTo(golemPosition.getLocationId())!=0){
+                //                         if(pathToCorner.size()>1){
+                //                             if(r.compareTo(pathToCorner.get(1))==0){
+                //                                 Node node = this.myMap.getNode(r);
+                //                                 if(node.getDegree()>=3){
+                //                                     if(m == true){
+                //                                         for(Couple<String, String> c : moves){
+                //                                             if(c.getLeft().compareTo(name)==0){
+                //                                                 toRemove.add(c);
+                //                                             }
+                //                                         }
+                //                                     }
+                //                                     moves.add(new Couple<String, String>(name, r));
+                //                                     m = true;
+                //                                 }
+                //                                 else if(m == false){
+                //                                     moves.add(new Couple<String, String>(name, r));
+                //                                     m = true;
+                //                                 }
+                //                             }
+                //                             else if(m == false){
+                //                                 moves.add(new Couple<String, String>(name, r));
+                //                                 m = true;                                         
+                //                             }
+                //                         }
+                //                         else{
+                //                             if(m == true){
+                //                                 for(Couple<String, String> c : moves){
+                //                                     if(c.getLeft().compareTo(name)==0){
+                //                                         toRemove.add(c);
+                //                                     }
+                //                                 }
+                //                             }
+                //                             moves.add(new Couple<String, String>(name, r));
+                //                             m = true;
+                //                         }
+                //                     }
+                //                     else if(m == false){
+                //                         moves.add(new Couple<String, String>(name, r));
+                //                         m = true;                                    
+                //                     }
+                //                 }
+                //             }
+                //             else{
+                //                 for(String r : reach){
+                //                     if(r.compareTo(golemPosition.getLocationId())!=0){
+                //                         if(m == true){
+                //                             for(Couple<String, String> c : moves){
+                //                                 if(c.getLeft().compareTo(name)==0){
+                //                                     toRemove.add(c);
+                //                                 }
+                //                             }
+                //                         }
+                //                         moves.add(new Couple<String, String>(name, r));
+                //                         m = true;
+                //                     }
+                //                     else if(m == false){
+                //                         moves.add(new Couple<String, String>(name, r));
+                //                         m = true;                                         
+                //                     }
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
+
+                // List<String> lmoves = new ArrayList<String>();
+                // for(Couple<String, String> move : moves){
+                //     lmoves.add(move.getRight());
+                // }
                 
-                Collections.shuffle(edges_occupied);
+                // System.out.println(lmoves);
+                // System.out.println(moves);
 
-                System.out.println(myAgent.getLocalName()+" edges_occupied = "+edges_occupied);
+                // HashMap<String, Integer> apparitions_node = new HashMap<String, Integer>();
+                // HashMap<String, Integer> apparitions_name = new HashMap<String, Integer>();
 
-                List<Edge> es = this.myMap.getNode(pathToCorner.get(0)).edges().collect(Collectors.toList());
-                List<String> ln = new ArrayList<String>();
-                for(Edge e : es){
-                    if(e.getNode0().getId().compareTo(pathToCorner.get(0))==0){
-                        ln.add(e.getNode1().getId());
-                    }
-                    else{
-                        ln.add(e.getNode0().getId());
-                    }
-                }
+                // // Count the occurrences of each position and each agent name
+                // for (Couple<String, String> c : moves) {
+                //     if (apparitions_node.containsKey(c.getRight())) {
+                //         apparitions_node.put(c.getRight(), apparitions_node.get(c.getRight()) + 1);
+                //         apparitions_name.put(c.getLeft(), apparitions_name.getOrDefault(c.getLeft(), 0) + 1);
+                //     } else {
+                //         apparitions_node.put(c.getRight(), 1);
+                //         apparitions_name.put(c.getLeft(), 1);
+                //     }
+                // }
 
-                System.out.println(myAgent.getLocalName()+" ln = "+ln);
+                // // name[Robin : 1, Tibi, 2, Tim : 2, Elsa : 1]
+                // // node[1_2 : 3, 0_1 : 2, 0_3 : 1]
 
-                List<String> reachable = new ArrayList<String>();   // Reachables around the next node in the path by only one move
+                // // Iterate over the team members to identify duplicates
 
-                for(String n : ln){
-                    for (Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
-                        if (obs.getLeft().getLocationId().compareTo(n)==0){ // Reachable by only one move
-                            reachable.add(n);
-                        }
-                    }
-                }
+                // for (String name : team) {
+                //     if (apparitions_name.getOrDefault(name, 0) > 1) {
+                //         for (Couple<String, String> move : moves) {
+                //             if (move.getLeft().equals(name) && apparitions_node.getOrDefault(move.getRight(), 0) > 1) {
+                //                 // Mark the duplicate move to be removed
+                //                 toRemove.add(move);
+                //                 // Update the occurrence count for the position to avoid removing it multiple times
+                //                 apparitions_node.put(move.getRight(), apparitions_node.get(move.getRight()) - 1);
+                //             }
+                //         }
+                //     }
+                // }
 
-                Collections.shuffle(reachable);                
+                // Remove the marked duplicates from the moves list
+                System.out.println(moves);
+                System.out.println("TO REMOVE ="+toRemove.toString());
+                moves.removeAll(toRemove);
 
-                System.out.println(myAgent.getLocalName()+" reachable nodes around the next in the path = "+reachable+"\npath = "+pathToCorner);
-                String move = null;
 
-                if(reachable.size()==0){
-                    exitValue = 1;
-                    System.out.println("I AM LEAVING HERE 2");
-                    return;
-                }
-                else if(ln.size()>0 && ln.size()<(((ExploreFSMAgent) myAgent).getToCornerTeam().size()+1) && reachable.size()<ln.size()){
-                    for(String reach : reachable){
-                        if(edges_occupied.contains(reach)){
-                            if(move == null){
-                                move = myPosition.getLocationId();
-                            }
-                        }
-                        else{
-                            move = reach;
-                        }
-                    }
-                }
-                else if(reachable.size()==1) {
-                    move = reachable.get(0);
-                }
-                else{
-                    for(String reach : reachable){
-                        if(edges_occupied.contains(reach)){
-                            if(myPosition.getLocationId().compareTo(pathToCorner.get(0))==0){
-                                if(reach.compareTo(golemPosition.getLocationId())!=0){
-                                    if(pathToCorner.size()>1 && reach.compareTo(pathToCorner.get(1))==0){
-                                        move = null;
-                                    }
-                                    else{
-                                        move = reach;
-                                    }
-                                }
-                                else{
-                                    if(move == null){
-                                        move = reach;
-                                    }
-                                }
-                            }
-                            else{
-                                if(move == null){
-                                    move = reach;
-                                }
-                            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+
+                // for(Couple<String, String> c : moves){
+                //     if(apparitions_node.containsKey(c.getRight())){
+                //         apparitions_node.put(c.getRight(), apparitions_node.get(c.getRight())+1);
+                //         apparitions_name.put(c.getRight(), apparitions_name.get(c.getRight())+1);
+                //     }
+                //     else{
+                //         apparitions_node.put(c.getRight(), 1);
+                //         apparitions_name.put(c.getRight(), 1);
+                //     }
+                // }
+
+                // for(String name : team){
+                //     if(apparitions_name.get(name)>1){
                         
-                        }
-                        else{
-                            move = reach;
-                        }
-                    }
-                }
-
-                List<String> temp = new ArrayList<String>();
-                boolean error = false; boolean done = false;
-
-                edges_occupied.add(move);
-
-                for(String m : edges_occupied){
-                    if(temp.contains(m)){
-                        error = true;
-                    }
-                    else{
-                        temp.add(m);
-                    }
-                }
+                //     }
+                // }
                 
-                if(edges_occupied.containsAll(ln) && !error){
-                    done = true;
-                }
+                // for(Couple<String, String> c : moves){
+                //     String move = c.getRight();
+                //     if(ln.size()<team.size()+1){
+                //         int cmptMove = 0;
+                //         for(String m : lmoves){
+                //             if(m!=null && m.compareTo(move)==0){
+                //                 cmptMove++;
+                //             }
+                //         }
+                //         if(cmptMove>1){
+                //             String pos = null;
+                //             for(Couple<String,String> p : positions){
+                //                 if(p.getLeft().compareTo(c.getLeft())==0){
+                //                     pos = p.getRight();
+                //                 }
+                //             }
+                //             if(pos!=null && pos.compareTo(pathToCorner.get(0))!=0){
+                //                 lmoves.remove(c.getRight());
+                //                 toRemove.add(c);
+                //             }
+                //         }
+                //     }
+                // }
+                // for(Couple<String,String> remove : toRemove){
+                //     System.out.println("REMOVE = "+remove.toString()+ " TO REMOVE ="+toRemove.toString());
+                //     moves.remove(remove);
+                // }
 
-                edges_occupied.remove(move);
-                ends.removeAll(List.of(false));
+                // Send the moves
 
-                if(leader.compareTo(myAgent.getLocalName())==0){
-                    System.out.println("Ends = "+ends);
-                }
+                System.out.println(moves);
 
-                if(done == true && ends.size() >= ln.size()-1 && leader.compareTo(myAgent.getLocalName())==0){  // Only the leader chose when we stop
-                    searching = false;
-
-                    ((ExploreFSMAgent) myAgent).setNextMove(new gsLocation(move));
+                for(String receiver : team){
+                    String move = null;
+                    for(Couple<String, String> c : moves){
+                        System.out.println(c);
+                        if(c.getLeft().compareTo(receiver)==0){
+                            move = c.getRight();
+                        }
+                    }
 
                     ACLMessage message = new ACLMessage(ACLMessage.INFORM);
-                    message.setProtocol("STOP");
+                    message.setProtocol("MOVE");
                     message.setSender(this.myAgent.getAID());
 
-                    for (String agentName : receivers) {
-                        message.addReceiver(new AID(agentName, AID.ISLOCALNAME));
-                    }
+                    message.addReceiver(new AID(receiver, AID.ISLOCALNAME));
+                    
                     try {
-                        message.setContentObject(moves);
+                        message.setContentObject(move);
                     }catch (Exception e) {
                         e.printStackTrace();
                     }
-                    System.out.println(myAgent.getLocalName()+" I am sending "+moves+" to "+receivers);
                     ((AbstractDedaleAgent)this.myAgent).sendMessage(message);
+
+                    System.out.println(myAgent.getLocalName()+" I send to "+receiver+" his next move = "+move);
                 }
 
-                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                msg.setProtocol("EDGE");
-                msg.setSender(this.myAgent.getAID());
-
-                for (String agentName : receivers) {
-                    msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
-                }
-                try {
-                    List<String> l = new ArrayList<String>();
-                    l.add(move);
-                    if(done==true){
-                        l.add("true");
-                    }else{
-                        l.add("false");
+                String move = null;
+                for(Couple<String, String> c : moves){
+                    if(c.getLeft()==myAgent.getLocalName()){
+                        move = c.getRight();
                     }
-                    msg.setContentObject(new PathInfo(l));
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
-                System.out.println(myAgent.getLocalName()+" I am sending "+move+" "+done+" to "+receivers);
-                ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
-                cmpt++;
+
+                if(move == null){
+                    ((ExploreFSMAgent)myAgent).setNextMove((gsLocation) myPosition);
+                }
+                else{
+                    ((ExploreFSMAgent)myAgent).setNextMove(new gsLocation(move));
+                }
             }
 
             try {
-                Thread.sleep(100);
+                Thread.sleep(1000);
             } catch (Exception e) {
                 e.printStackTrace();
-            }
-
-            MessageTemplate msgT=MessageTemplate.and(
-                MessageTemplate.MatchProtocol("EDGE"),
-                MessageTemplate.MatchPerformative(ACLMessage.INFORM));
-            ACLMessage msgR=this.myAgent.receive(msgT);
-
-            while(msgR!=null){   // I have to delete the message or I will have fake infos for the next input
-                msgR=this.myAgent.receive(msgT);
-                System.out.println(myAgent.getLocalName()+" Deleting future fakes infos");
             }
 
             gsLocation move = ((ExploreFSMAgent) myAgent).getNextMove();
@@ -549,7 +722,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     }
 
                     MessageTemplate msgTemp=MessageTemplate.and(
-                        MessageTemplate.MatchProtocol("MOVE"),
+                        MessageTemplate.MatchProtocol("GO"),
                         MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                     ACLMessage msg=this.myAgent.receive(msgTemp);
 
@@ -580,7 +753,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     }
 
                     MessageTemplate msgTemp=MessageTemplate.and(
-                        MessageTemplate.MatchProtocol("MOVE"),
+                        MessageTemplate.MatchProtocol("GO"),
                         MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                     ACLMessage msg=this.myAgent.receive(msgTemp);
 
@@ -613,10 +786,10 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     if(moved){
                         System.out.println(myAgent.getLocalName()+" I notify the edges blocker to move");
                         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                        msg.setProtocol("MOVE");
+                        msg.setProtocol("GO");
                         msg.setSender(this.myAgent.getAID());
 
-                        for (String agentName : receivers) {
+                        for (String agentName : team) {
                             msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
                         }
                         ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);

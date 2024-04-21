@@ -3,8 +3,6 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,8 +14,6 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import org.graphstream.graph.Edge;
-import org.graphstream.graph.Node;
 
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
@@ -131,7 +127,7 @@ public class ExploBehaviour extends SimpleBehaviour {
 
 				//3) while openNodes is not empty, continues.
 				//if (!this.myMap.hasOpenNode() || (((ExploreFSMAgent) this.myAgent).getIteration() >= 200 && )){
-				if (!this.myMap.hasOpenNode() || ((ExploreFSMAgent) this.myAgent).getIteration() >= 200){
+				if (!this.myMap.hasOpenNode() || ((ExploreFSMAgent) this.myAgent).getIteration() >= 300){
 					//Explo finished
 					System.out.println(this.myAgent.getLocalName()+" - Exploration successufully done !");
 					System.out.println("Closed nodes = "+this.myMap.getClosedNodes()+this.myMap.getClosedNodes().size());
