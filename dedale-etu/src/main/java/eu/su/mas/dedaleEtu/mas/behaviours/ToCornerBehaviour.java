@@ -128,7 +128,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         int cmpt = 0;
 
         // if(((ExploreFSMAgent) myAgent).getToCornerTeam()==null){
-            check(listG, myPosition);
+        check(listG, myPosition);
         // }
 
         System.out.println(myAgent.getLocalName()+" Ok fine, my team in the ToCorner is "+((ExploreFSMAgent) myAgent).getToCornerTeam());
@@ -138,13 +138,35 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        MessageTemplate msgHere=MessageTemplate.and(
+            MessageTemplate.MatchProtocol("HERE"),
+            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+        ACLMessage msgRH=this.myAgent.receive(msgHere);
+
+        while(msgRH!=null){   // I have to delete the message or I will have fake infos for the next input
+            msgRH=this.myAgent.receive(msgHere);
+            System.out.println(myAgent.getLocalName()+" Deleting here infos");
+        }
         
+        
+        if(((ExploreFSMAgent) myAgent).getToCornerTeam()==null) {
+            System.out.println("I LEAVE HERE 7");
+            return;
+        }
+
         leader = myAgent.getLocalName();
-        if(((ExploreFSMAgent) myAgent).getToCornerTeam().size() > 0) {
-            for (String agentName : ((ExploreFSMAgent) myAgent).getToCornerTeam()) {
-                if(agentName.compareTo(leader) < 0) {
-                    leader = agentName;
-                }
+        for (String agentName : ((ExploreFSMAgent) myAgent).getToCornerTeam()) {
+            if(agentName.compareTo(leader) < 0) {
+                leader = agentName;
+            }
+        }    
+
+        if(myAgent.getLocalName().compareTo(leader)!=0){
+            try {
+                myAgent.doWait(1000);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -152,13 +174,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 			MessageTemplate.MatchProtocol("PATH"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
 		ACLMessage received_path_leader=this.myAgent.receive(received_path_template);
-
-        try {
-            myAgent.doWait(1000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        
         if(received_path_leader != null && pathToCorner == null){
             try {
                 PathInfo pathInfo = (PathInfo) received_path_leader.getContentObject();
@@ -206,7 +222,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             }
         }
 
-        if(leader != null && leader.compareTo(this.myAgent.getLocalName())==0) {
+        if(leader != null && leader.compareTo(this.myAgent.getLocalName())==0 && pathToCorner==null) {
             // I am the leader, I need to send to everybody my shortest path to a corner
 
             pathToCorner = ((ExploreFSMAgent) this.myAgent).getPathToCorner();
@@ -229,6 +245,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 e.printStackTrace();
             }
             ((AbstractDedaleAgent)this.myAgent).sendMessage(msg_path);
+            // return;
         }
 
         pathToCorner = ((ExploreFSMAgent) myAgent).getPathToCorner();
@@ -253,6 +270,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
                 if(cmpt>=20){
                     exitValue = 1;
+                    System.out.println("I AM LEAVING HERE");
                     return; 
                 }
 
@@ -377,6 +395,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
                 if(reachable.size()==0){
                     exitValue = 1;
+                    System.out.println("I AM LEAVING HERE 2");
                     return;
                 }
                 else if(ln.size()>0 && ln.size()<(((ExploreFSMAgent) myAgent).getToCornerTeam().size()+1) && reachable.size()<ln.size()){
@@ -392,24 +411,14 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     }
                 }
                 else if(reachable.size()==1) {
-                    if(myPosition.getLocationId().compareTo(pathToCorner.get(0))==0){
-                        if(reachable.get(0).compareTo(golemPosition.getLocationId())==0){
-                            move = reachable.get(1);
-                        }
-                        else{
-                            move = reachable.get(0);
-                        }
-                    }
-                    else{
-                        move = reachable.get(0);
-                    }
+                    move = reachable.get(0);
                 }
                 else{
                     for(String reach : reachable){
                         if(edges_occupied.contains(reach)){
-                            if(move == null){
-                                if(myPosition.getLocationId().compareTo(pathToCorner.get(0))==0){
-                                    if(reach.compareTo(golemPosition.getLocationId())==0){
+                            if(myPosition.getLocationId().compareTo(pathToCorner.get(0))==0){
+                                if(reach.compareTo(golemPosition.getLocationId())!=0){
+                                    if(pathToCorner.size()>1 && reach.compareTo(pathToCorner.get(1))==0){
                                         move = null;
                                     }
                                     else{
@@ -417,9 +426,17 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                                     }
                                 }
                                 else{
+                                    if(move == null){
+                                        move = reach;
+                                    }
+                                }
+                            }
+                            else{
+                                if(move == null){
                                     move = reach;
                                 }
                             }
+                        
                         }
                         else{
                             move = reach;
@@ -546,6 +563,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
                         if(cmpt >= 25){
                             exitValue = 1;
+                            System.out.println("I AM LEAVING HERE 3");
                             return;
                         }
                         cmpt++;
@@ -576,6 +594,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     else{
                         if(cmpt>=100){
                             exitValue = 1;
+                            System.out.println("I AM LEAVING HERE 4");
                             return;
                         }
                         cmpt++;
@@ -605,6 +624,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     else{
                         if(cmpt>=200){
                             exitValue = 1;
+                            System.out.println("I AM LEAVING HERE 5");
                             return;
                         }
                         cmpt++;
@@ -664,6 +684,8 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             if(cmpt >= 25){
                 System.out.println(myAgent.getLocalName()+" I think we are not enough in the ToCornerBehaviour");
                 exitValue = 1;
+                System.out.println("I AM LEAVING HERE 6");
+                ((ExploreFSMAgent)myAgent).setToCornerTeam(null);
                 return;
             }
 
