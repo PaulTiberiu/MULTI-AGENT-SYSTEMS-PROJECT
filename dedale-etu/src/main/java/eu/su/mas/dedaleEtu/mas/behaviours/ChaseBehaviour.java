@@ -5,6 +5,8 @@ import eu.su.mas.dedaleEtu.mas.knowledge.ChaseInfos;
 import jade.core.behaviours.SimpleBehaviour;
 import java.util.List;
 import java.util.Random;
+import org.graphstream.graph.Node;
+
 
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Collections;
 import org.graphstream.graph.Edge;
+
 
 public class ChaseBehaviour extends SimpleBehaviour {
     private static final long serialVersionUID = 8567689731496787661L;
@@ -200,6 +203,15 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
             //List of observable from the agent's current position
             List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+            List<Couple<Location,List<Couple<Observation,Integer>>>> toRemove = new ArrayList<Couple<Location,List<Couple<Observation,Integer>>>>();
+            for(Couple<Location,List<Couple<Observation,Integer>>> o : lobs){
+                Node n = this.myMap.getNode(o.getLeft().getLocationId());
+                if(n == null){
+                    System.out.println("ON REGARDE UN NOEUD SUPPRIME");
+                    toRemove.add(o);
+                }
+            }
+            lobs.removeAll(toRemove);
             System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
             
             boolean isGolem = false;

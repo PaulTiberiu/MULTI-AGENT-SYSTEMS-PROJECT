@@ -4,6 +4,10 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.ChaseInfos;
 import jade.core.behaviours.SimpleBehaviour;
 import java.util.List;
+import org.graphstream.graph.Node;
+import java.util.ArrayList;
+
+
 
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
@@ -15,12 +19,13 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import java.io.IOException;
 import jade.core.AID;
 import jade.lang.acl.ACLMessage;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 
 
 public class ShareInfosBehaviour extends SimpleBehaviour{
     private static final long serialVersionUID = 8567689731496787661L;
     private List<String> receivers;
-
+    private MapRepresentation myMap;
 
     /**
      * 
@@ -34,9 +39,19 @@ public class ShareInfosBehaviour extends SimpleBehaviour{
     @Override
     public void action() {
         System.out.println("I am "+myAgent.getName()+" and I am sending my INFORMATIONS");
+        myMap = ((ExploreFSMAgent) this.myAgent).getMap(true);
 
         List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
-        
+        List<Couple<Location,List<Couple<Observation,Integer>>>> toRemove = new ArrayList<Couple<Location,List<Couple<Observation,Integer>>>>();
+        for(Couple<Location,List<Couple<Observation,Integer>>> o : lobs){
+            Node n = this.myMap.getNode(o.getLeft().getLocationId());
+            if(n == null){
+                // System.out.println("ON REGARDE UN NOEUD SUPPRIME");
+                toRemove.add(o);
+            }
+        }
+        lobs.removeAll(toRemove);
+    
         gsLocation move = ((ExploreFSMAgent) myAgent).getNextMove();
 
         gsLocation golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();

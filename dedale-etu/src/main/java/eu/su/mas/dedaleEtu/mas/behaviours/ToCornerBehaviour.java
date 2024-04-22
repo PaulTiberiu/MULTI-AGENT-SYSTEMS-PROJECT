@@ -194,6 +194,16 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         List<String> small_arity_nodes = this.myMap.getNodesWithSmallestArity();
         int length = Integer.MAX_VALUE;
         List<Couple<Location,List<Couple<Observation,Integer>>>> lobs = ((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+        List<Couple<Location,List<Couple<Observation,Integer>>>> remove = new ArrayList<Couple<Location,List<Couple<Observation,Integer>>>>();
+        for(Couple<Location,List<Couple<Observation,Integer>>> o : lobs){
+            Node n = this.myMap.getNode(o.getLeft().getLocationId());
+            if(n == null){
+                System.out.println("ON REGARDE UN NOEUD SUPPRIME");
+                remove.add(o);
+            }
+        }
+        lobs.removeAll(remove);
+        System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
         System.out.println(myAgent.getLocalName()+" small_arity_nodes = "+small_arity_nodes);
 
@@ -356,20 +366,20 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-
-
-                    System.out.println(myAgent.getLocalName()+" I got a message from "+msgR.getSender().getLocalName());
-                    try {
-                        PathInfo pathInfo = (PathInfo) msgR.getContentObject();
-                        String pos = pathInfo.getPath().get(0);
-                        List<String> reach = pathInfo.getPath();
-                        reach.remove(0);
-                        reachables.add(new Couple<String, List<String>>(msgR.getSender().getLocalName(), reach));
-                        positions.add(new Couple<String, String>(msgR.getSender().getLocalName(), pos));
-                        System.out.println(myAgent.getLocalName()+" I got his position = "+pos+" and is reach = "+reach);
-                        nbmsg++;
-                    } catch (UnreadableException e) {
-                        e.printStackTrace();
+                    if(msgR!=null){
+                        System.out.println(myAgent.getLocalName()+" I got a message from "+msgR.getSender().getLocalName());
+                        try {
+                            PathInfo pathInfo = (PathInfo) msgR.getContentObject();
+                            String pos = pathInfo.getPath().get(0);
+                            List<String> reach = pathInfo.getPath();
+                            reach.remove(0);
+                            reachables.add(new Couple<String, List<String>>(msgR.getSender().getLocalName(), reach));
+                            positions.add(new Couple<String, String>(msgR.getSender().getLocalName(), pos));
+                            System.out.println(myAgent.getLocalName()+" I got his position = "+pos+" and its reach = "+reach);
+                            nbmsg++;
+                        } catch (UnreadableException e) {
+                            e.printStackTrace();
+                        }
                     }
                     msgR=this.myAgent.receive(msgT);
                 }
@@ -382,7 +392,26 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 List<Couple<String,String>> moves = new ArrayList<Couple<String,String>>(); // list of (name,nextmove)
                 List<Couple<String, String>> toRemove = new ArrayList<Couple<String, String>>();
 
+                List<Couple<String, List<String>>> reachables_ordered = new ArrayList<Couple<String,List<String>>>();
+
+                String agent_in_path = null;
+
+                for(Couple<String, String> c : positions){
+                    if(c.getRight().compareTo(pathToCorner.get(0))==0){
+                        agent_in_path = c.getLeft();
+                    }
+                }
+
                 for(Couple<String, List<String>> couple : reachables){
+                    if(couple.getLeft().compareTo(agent_in_path)==0){
+                        reachables_ordered.add(0,couple);
+                    }
+                    else{
+                        reachables_ordered.add(couple);
+                    }
+                }
+
+                for(Couple<String, List<String>> couple : reachables_ordered){  // reachable_ordered start by the agent in the pathToCorner
                     List<String> reach = couple.getRight();
                     String name = couple.getLeft();
                     boolean m = false;
@@ -400,150 +429,82 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                             other_reachables.addAll(pairs.getRight());
                         }
                     }
+
+                    if(reach.size()==0){
+                        moves.add(new Couple<String, String>(name, pos));
+                    }   
+                    else if(reach.size()==1){   // I follow the golem
+                        moves.add(new Couple<String, String>(name, reach.get(0)));
+                    }
+                    else if(pos.compareTo(pathToCorner.get(0))==0){   // If he is in the path of the golem he needs to move to the next node in the path
+                        for(String r : reach){
+                            if(!other_reachables.contains(r)){
+                                if(pathToCorner.size()>1 && pathToCorner.get(1).compareTo(r)==0){                                        
+                                    Node node = this.myMap.getNode(r);
+                                    Node goal = this.myMap.getNode(pathToCorner.get(pathToCorner.size()-1));
+                                    if(node.getDegree()>2 || goal.getDegree()>1){    // Not a corridor
+                                        moves.add(new Couple<String, String>(name, r));
+                                        m = true;
+                                    }
+                                }
+                                else{
+                                    moves.add(new Couple<String, String>(name, r));
+                                    m = true;
+                                }
+                            }
+                        }
+                        if(m==false){   // Wall or Corner
+                            for(String r : reach){
+                                if(r.compareTo(golemPosition.getLocationId())!=0){
+                                    if(pathToCorner.size()>1 && pathToCorner.get(1).compareTo(r)!=0){   // Not on the path of the golem
+                                        moves.add(new Couple<String, String>(name, r));
+                                        m = true;
+                                    }
+                                    else if(pathToCorner.size()==1){    // In the corner
+                                        moves.add(new Couple<String, String>(name, r));
+                                        m = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else{   // I am an edge blocker
+                        for(String r : reach){
+                            if(!other_reachables.contains(r)){
+                                if(m == true){
+                                    for(Couple<String, String> c : moves){
+                                        if(c.getLeft().compareTo(name)==0){
+                                            toRemove.add(c);
+                                        }
+                                    }
+                                }
+                                moves.add(new Couple<String, String>(name, r));
+                                m = true;
+                            }
+                        }
+                        if(m == false){
+                            for(String re : reach){
+                                if(re.compareTo(golemPosition.getLocationId())!=0){
+                                    if(m == true){
+                                        for(Couple<String, String> c : moves){
+                                            if(c.getLeft().compareTo(name)==0){
+                                                toRemove.add(c);
+                                            }
+                                        }
+                                    }
+                                    moves.add(new Couple<String, String>(name, re));
+                                    m = true;
+                                }
+                                else if(m == false){
+                                    moves.add(new Couple<String, String>(name, re));
+                                    m = true;
+                                }
+                            }                        
+                        }
+                    }
                 }
 
-                //     if(reach.size()==0){
-                //         moves.add(new Couple<String, String>(name, pos));   // Don't move
-                //     }
-                //     else if(reach.size()==1) {
-                //         moves.add(new Couple<String, String>(name, reach.get(0)));  // Move on the only reachable you have
-                //     }
-                //     else{
-                //         for(String r : reach){
-                //             moves.removeAll(toRemove);
-                //             toRemove.clear();
-                //             if(!other_reachables.contains(r)){
-                //                 if(pos.compareTo(pathToCorner.get(0))==0){
-                //                     if(pathToCorner.size()>1){
-                //                         if(r.compareTo(pathToCorner.get(1))!=0){
-                //                             if(m == true){
-                //                                 for(Couple<String, String> c : moves){
-                //                                     if(c.getLeft().compareTo(name)==0){
-                //                                         toRemove.add(c);
-                //                                     }
-                //                                 }
-                //                             }
-                //                             moves.add(new Couple<String, String>(name, r));
-                //                             m = true;
-                //                         }
-                //                         else if(m == false){
-                //                             moves.add(new Couple<String, String>(name, r));
-                //                             m = true;                                         
-                //                         }
-                //                     }
-                //                     else{
-                //                         if(m == true){
-                //                             for(Couple<String, String> c : moves){
-                //                                 if(c.getLeft().compareTo(name)==0){
-                //                                     toRemove.add(c);
-                //                                 }
-                //                             }
-                //                         }
-                //                         moves.add(new Couple<String, String>(name, r));
-                //                         m = true;
-                //                     }
-                //                 }
-                //                 else{
-                //                     if(m == true){
-                //                         for(Couple<String, String> c : moves){
-                //                             if(c.getLeft().compareTo(name)==0){
-                //                                 toRemove.add(c);
-                //                             }
-                //                         }
-                //                     }
-                //                     moves.add(new Couple<String, String>(name, r));
-                //                     m = true;
-                //                 }
-                //             }
-                //             else if(pos.compareTo(pathToCorner.get(0))==0){
-                //                 if(pathToCorner.size()>1){
-                //                     if(r.compareTo(pathToCorner.get(1))!=0){
-                //                         if(m == true){
-                //                             for(Couple<String, String> c : moves){
-                //                                 if(c.getLeft().compareTo(name)==0){
-                //                                     toRemove.add(c);
-                //                                 }
-                //                             }
-                //                         }
-                //                         moves.add(new Couple<String, String>(name, r));
-                //                         m = true;
-                //                     }
-                //                 }
-                //                 else if (m == false){
-                //                     moves.add(new Couple<String, String>(name, r));
-                //                     m = true;
-                //                 }
-                //             }
-                //         }
-
-                //         if(m == false){
-                //             if(pos.compareTo(pathToCorner.get(0))==0){
-                //                 for(String r : reach){
-                //                     if(r.compareTo(golemPosition.getLocationId())!=0){
-                //                         if(pathToCorner.size()>1){
-                //                             if(r.compareTo(pathToCorner.get(1))==0){
-                //                                 Node node = this.myMap.getNode(r);
-                //                                 if(node.getDegree()>=3){
-                //                                     if(m == true){
-                //                                         for(Couple<String, String> c : moves){
-                //                                             if(c.getLeft().compareTo(name)==0){
-                //                                                 toRemove.add(c);
-                //                                             }
-                //                                         }
-                //                                     }
-                //                                     moves.add(new Couple<String, String>(name, r));
-                //                                     m = true;
-                //                                 }
-                //                                 else if(m == false){
-                //                                     moves.add(new Couple<String, String>(name, r));
-                //                                     m = true;
-                //                                 }
-                //                             }
-                //                             else if(m == false){
-                //                                 moves.add(new Couple<String, String>(name, r));
-                //                                 m = true;                                         
-                //                             }
-                //                         }
-                //                         else{
-                //                             if(m == true){
-                //                                 for(Couple<String, String> c : moves){
-                //                                     if(c.getLeft().compareTo(name)==0){
-                //                                         toRemove.add(c);
-                //                                     }
-                //                                 }
-                //                             }
-                //                             moves.add(new Couple<String, String>(name, r));
-                //                             m = true;
-                //                         }
-                //                     }
-                //                     else if(m == false){
-                //                         moves.add(new Couple<String, String>(name, r));
-                //                         m = true;                                    
-                //                     }
-                //                 }
-                //             }
-                //             else{
-                //                 for(String r : reach){
-                //                     if(r.compareTo(golemPosition.getLocationId())!=0){
-                //                         if(m == true){
-                //                             for(Couple<String, String> c : moves){
-                //                                 if(c.getLeft().compareTo(name)==0){
-                //                                     toRemove.add(c);
-                //                                 }
-                //                             }
-                //                         }
-                //                         moves.add(new Couple<String, String>(name, r));
-                //                         m = true;
-                //                     }
-                //                     else if(m == false){
-                //                         moves.add(new Couple<String, String>(name, r));
-                //                         m = true;                                         
-                //                     }
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
+                
 
                 // List<String> lmoves = new ArrayList<String>();
                 // for(Couple<String, String> move : moves){
