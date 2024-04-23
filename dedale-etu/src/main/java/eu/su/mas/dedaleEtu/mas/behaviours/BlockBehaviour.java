@@ -7,7 +7,7 @@ import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+//import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.AID;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -36,7 +36,7 @@ public class BlockBehaviour extends SimpleBehaviour {
 	/**
 	 * Current knowledge of the agent regarding the environment
 	 */
-	private MapRepresentation myMap;
+	//private MapRepresentation myMap;
 	private int exitValue = 0;
     private List<String> receivers;
 /**

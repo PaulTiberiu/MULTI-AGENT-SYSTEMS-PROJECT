@@ -98,6 +98,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
+            
             Set<String> edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
             List<String> removed = new ArrayList<String>();
             if(edges!=null && edges.size()>0){

@@ -81,25 +81,26 @@ public class ChaseBehaviour extends SimpleBehaviour {
             }
 
             golemPosition = ((ExploreFSMAgent) myAgent).getGolemPosition();
-            if(golemPosition!=null){
-                Set<String> edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
-                List<String> removed = new ArrayList<String>();
-                if(edges!=null && edges.size()>0){
-                    for(String edge : edges){
-                        removed.add(edge);
-                        List<Edge> links = this.myMap.getNode(edge).edges().collect(Collectors.toList());
-                        for(Edge link : links){
-                            this.myMap.removeEdge(link);
-                        }
-                        this.myMap.removeNode(edge);
+            Set<String> edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+            List<String> removed = new ArrayList<String>();
+            if(edges!=null && edges.size()>0){
+                for(String edge : edges){
+                    removed.add(edge);
+                    List<Edge> links = this.myMap.getNode(edge).edges().collect(Collectors.toList());
+                    for(Edge link : links){
+                        this.myMap.removeEdge(link);
                     }
+                    this.myMap.removeNode(edge);
                 }
-                removed.add(golemPosition.getLocationId());
+            }
+            removed.add(golemPosition.getLocationId());
+            if(this.myMap.getSerializableGraph().getNode(golemPosition.getLocationId())!=null){
                 this.myMap.removeNode(golemPosition.getLocationId());       // NE PAS RE SUPPR -> TESTER SI C DEJA FAIT
                 System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
             }
             ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
             System.out.println(myAgent.getLocalName()+" JE CONTINUE DE CHASSER\n");
+            ((ExploreFSMAgent) myAgent).setPathToG(this.myMap.getShortestPath(myPosition.getLocationId(),"5_5"));
         }
 
 
