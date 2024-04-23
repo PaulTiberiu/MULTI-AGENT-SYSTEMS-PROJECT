@@ -1,24 +1,17 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
-import java.util.Iterator;
-
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import dataStructures.serializableGraph.SerializableNode;
-import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreFSMAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.PathInfo;
@@ -30,7 +23,6 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Node;
-import java.util.Collections;
 
 
 
@@ -98,7 +90,8 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
-            
+            golemPosition = ((ExploreFSMAgent)myAgent).getGolemPosition();
+
             Set<String> edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
             List<String> removed = new ArrayList<String>();
             if(edges!=null && edges.size()>0){
@@ -404,7 +397,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 }
 
                 for(Couple<String, List<String>> couple : reachables){
-                    if(couple.getLeft().compareTo(agent_in_path)==0){
+                    if(agent_in_path!=null && couple.getLeft().compareTo(agent_in_path)==0){
                         reachables_ordered.add(0,couple);
                     }
                     else{
@@ -505,115 +498,10 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     }
                 }
 
-                
-
-                // List<String> lmoves = new ArrayList<String>();
-                // for(Couple<String, String> move : moves){
-                //     lmoves.add(move.getRight());
-                // }
-                
-                // System.out.println(lmoves);
-                // System.out.println(moves);
-
-                // HashMap<String, Integer> apparitions_node = new HashMap<String, Integer>();
-                // HashMap<String, Integer> apparitions_name = new HashMap<String, Integer>();
-
-                // // Count the occurrences of each position and each agent name
-                // for (Couple<String, String> c : moves) {
-                //     if (apparitions_node.containsKey(c.getRight())) {
-                //         apparitions_node.put(c.getRight(), apparitions_node.get(c.getRight()) + 1);
-                //         apparitions_name.put(c.getLeft(), apparitions_name.getOrDefault(c.getLeft(), 0) + 1);
-                //     } else {
-                //         apparitions_node.put(c.getRight(), 1);
-                //         apparitions_name.put(c.getLeft(), 1);
-                //     }
-                // }
-
-                // // name[Robin : 1, Tibi, 2, Tim : 2, Elsa : 1]
-                // // node[1_2 : 3, 0_1 : 2, 0_3 : 1]
-
-                // // Iterate over the team members to identify duplicates
-
-                // for (String name : team) {
-                //     if (apparitions_name.getOrDefault(name, 0) > 1) {
-                //         for (Couple<String, String> move : moves) {
-                //             if (move.getLeft().equals(name) && apparitions_node.getOrDefault(move.getRight(), 0) > 1) {
-                //                 // Mark the duplicate move to be removed
-                //                 toRemove.add(move);
-                //                 // Update the occurrence count for the position to avoid removing it multiple times
-                //                 apparitions_node.put(move.getRight(), apparitions_node.get(move.getRight()) - 1);
-                //             }
-                //         }
-                //     }
-                // }
-
                 // Remove the marked duplicates from the moves list
                 System.out.println(moves);
                 System.out.println("TO REMOVE ="+toRemove.toString());
                 moves.removeAll(toRemove);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
-
-                // for(Couple<String, String> c : moves){
-                //     if(apparitions_node.containsKey(c.getRight())){
-                //         apparitions_node.put(c.getRight(), apparitions_node.get(c.getRight())+1);
-                //         apparitions_name.put(c.getRight(), apparitions_name.get(c.getRight())+1);
-                //     }
-                //     else{
-                //         apparitions_node.put(c.getRight(), 1);
-                //         apparitions_name.put(c.getRight(), 1);
-                //     }
-                // }
-
-                // for(String name : team){
-                //     if(apparitions_name.get(name)>1){
-                        
-                //     }
-                // }
-                
-                // for(Couple<String, String> c : moves){
-                //     String move = c.getRight();
-                //     if(ln.size()<team.size()+1){
-                //         int cmptMove = 0;
-                //         for(String m : lmoves){
-                //             if(m!=null && m.compareTo(move)==0){
-                //                 cmptMove++;
-                //             }
-                //         }
-                //         if(cmptMove>1){
-                //             String pos = null;
-                //             for(Couple<String,String> p : positions){
-                //                 if(p.getLeft().compareTo(c.getLeft())==0){
-                //                     pos = p.getRight();
-                //                 }
-                //             }
-                //             if(pos!=null && pos.compareTo(pathToCorner.get(0))!=0){
-                //                 lmoves.remove(c.getRight());
-                //                 toRemove.add(c);
-                //             }
-                //         }
-                //     }
-                // }
-                // for(Couple<String,String> remove : toRemove){
-                //     System.out.println("REMOVE = "+remove.toString()+ " TO REMOVE ="+toRemove.toString());
-                //     moves.remove(remove);
-                // }
 
                 // Send the moves
 
@@ -679,8 +567,15 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 if (myPosition.getLocationId().equals(pathToCorner.get(0))) {
                     System.out.println(myAgent.getLocalName()+" I am on the path of the golem, I have to move");
                     moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
-                    if(moved==false){
+                    while(moved==false && cmpt >= 25){
+                        try {
+                            myAgent.doWait(500);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         System.out.println(myAgent.getLocalName()+" J AI PAS REUSSI A ALLER SUR "+move);
+                        moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
+                        cmpt++;
                     }
 
                     MessageTemplate msgTemp=MessageTemplate.and(
@@ -688,6 +583,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                         MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                     ACLMessage msg=this.myAgent.receive(msgTemp);
 
+                    cmpt=0;
                     while(msg==null){
                         try {
                             myAgent.doWait(1000);

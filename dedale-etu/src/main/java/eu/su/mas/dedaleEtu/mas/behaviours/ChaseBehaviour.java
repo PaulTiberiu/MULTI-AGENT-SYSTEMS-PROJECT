@@ -55,6 +55,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         golemPosition = null;
         block = null;
 
@@ -63,6 +64,20 @@ public class ChaseBehaviour extends SimpleBehaviour {
 
         Location myPosition=((AbstractDedaleAgent)this.myAgent).getCurrentPosition();
         System.out.println(this.myAgent.getLocalName()+" -- myCurrentPosition is: "+myPosition);
+        
+        int cmptBlock = ((ExploreFSMAgent) myAgent).getCmptBlock();
+        System.out.println(myAgent.getLocalName()+" CMPT BLOCK = "+cmptBlock);
+
+        if(cmptBlock >= 20){
+            List<String> midPath = this.myMap.getMidPath(myPosition.getLocationId());
+            ((ExploreFSMAgent) myAgent).setPathToG(midPath);
+            System.out.println(myAgent.getLocalName()+" MID PATH = "+midPath);
+            ((ExploreFSMAgent) myAgent).setCmptBlock(0);
+        }
+        else if(cmptBlock > 0){
+            cmptBlock++;
+            ((ExploreFSMAgent) myAgent).setCmptBlock(cmptBlock);
+        }
 
         MessageTemplate Templatemsg=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("LEAVE"),
@@ -91,16 +106,20 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         this.myMap.removeEdge(link);
                     }
                     this.myMap.removeNode(edge);
+                    
                 }
             }
             removed.add(golemPosition.getLocationId());
             if(this.myMap.getSerializableGraph().getNode(golemPosition.getLocationId())!=null){
-                this.myMap.removeNode(golemPosition.getLocationId());       // NE PAS RE SUPPR -> TESTER SI C DEJA FAIT
-                System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
+                this.myMap.removeNode(golemPosition.getLocationId());
             }
+            System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
             ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
             System.out.println(myAgent.getLocalName()+" JE CONTINUE DE CHASSER\n");
-            ((ExploreFSMAgent) myAgent).setPathToG(this.myMap.getShortestPath(myPosition.getLocationId(),"5_5"));
+            if (cmptBlock == 0){
+                cmptBlock = 1;
+                ((ExploreFSMAgent) myAgent).setCmptBlock(cmptBlock);
+            }
         }
 
 
@@ -517,8 +536,14 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     // DO WE HAVE BLOCKED THE GOLEM ?
 
                     if(golemPosition!=null){
+                        boolean near = false;
+                        for(Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
+                            if (obs.getLeft().getLocationId().compareTo(golemPosition.getLocationId())==0){
+                                near = true;
+                            }
+                        }
                         Set<String> g_edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
-                        if(g_edges!=null){
+                        if(g_edges!=null && near){
                             boolean block = false;
                             for (String g_edge : g_edges){
                                 if (!g_edge.equals(myPosition.getLocationId()) && !allies_pos.contains(g_edge)){

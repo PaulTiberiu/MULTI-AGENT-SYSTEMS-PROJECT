@@ -44,6 +44,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private List<Couple<String, Couple<String, List<Couple<Location, List<Couple<Observation, Integer>>>>>>> sendersInfos;
 	private List<String> movesToCorner = null;
 	private List<String> toCornerTeam = null;
+	private Integer cmptBlock = 0;
 	
 	/************************************************
 	* 
@@ -350,6 +351,14 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 
 	public void setToCornerTeam(List<String> toCornerTeam){
         this.toCornerTeam = toCornerTeam;
+    }
+
+	public Integer getCmptBlock(){
+		return this.cmptBlock;
+	}
+
+	public void setCmptBlock(Integer cmptBlock){
+        this.cmptBlock = cmptBlock;
     }
 
 }

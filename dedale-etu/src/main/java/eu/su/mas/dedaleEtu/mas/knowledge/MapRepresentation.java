@@ -138,7 +138,6 @@ public class MapRepresentation implements Serializable {
 	 */
 	public synchronized List<String> getShortestPath(String idFrom,String idTo){
 		List<String> shortestPath=new ArrayList<String>();
-
 		Dijkstra dijkstra = new Dijkstra();//number of edge
 		dijkstra.init(g);
 		dijkstra.setSource(g.getNode(idFrom));
@@ -507,6 +506,28 @@ public class MapRepresentation implements Serializable {
         }
 
 		return nodesWithSmallestArity;
+	}
+
+
+	public List<String> getMidPath(String myPos){
+		Integer len = 0;
+		List<Node> nnodes = g.nodes().collect(Collectors.toList());
+		List<String> nodes = new ArrayList<String>();
+		for (Node node : nnodes){
+			nodes.add(node.getId());
+		}
+		List<String> path = new ArrayList<String>();
+		List<String> longest_path = new ArrayList<String>();
+		for (String node : nodes){
+			path = getShortestPath(myPos, node);
+			if (path.size() > len){
+				len = path.size();
+				longest_path = path;
+			}
+		}
+		String node = longest_path.get(longest_path.size()/2);
+		System.out.println(longest_path.size()/2+" node to go "+node);
+		return getShortestPath(myPos, node);
 	}
 
 
