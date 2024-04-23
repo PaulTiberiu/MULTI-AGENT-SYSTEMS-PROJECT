@@ -586,7 +586,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     cmpt=0;
                     while(msg==null){
                         try {
-                            myAgent.doWait(1000);
+                            myAgent.doWait(500);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -753,6 +753,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
 
             for(int i=0; i<50; i++){   // we delete all the messages from the msg queue
                 this.myAgent.receive();
+                System.out.println(myAgent.getLocalName()+" Message deleted from msg queue");
             }
         }
 

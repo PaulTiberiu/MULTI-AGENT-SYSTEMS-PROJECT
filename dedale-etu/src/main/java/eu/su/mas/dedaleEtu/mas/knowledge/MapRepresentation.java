@@ -520,7 +520,7 @@ public class MapRepresentation implements Serializable {
 		List<String> longest_path = new ArrayList<String>();
 		for (String node : nodes){
 			path = getShortestPath(myPos, node);
-			if (path.size() > len){
+			if (path!=null && path.size() > len){
 				len = path.size();
 				longest_path = path;
 			}

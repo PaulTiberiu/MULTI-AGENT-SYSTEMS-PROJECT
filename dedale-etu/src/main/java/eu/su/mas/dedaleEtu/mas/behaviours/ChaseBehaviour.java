@@ -109,12 +109,13 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     
                 }
             }
-            removed.add(golemPosition.getLocationId());
             if(this.myMap.getSerializableGraph().getNode(golemPosition.getLocationId())!=null){
                 this.myMap.removeNode(golemPosition.getLocationId());
+                removed.add(golemPosition.getLocationId());
             }
             System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
             ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
+            golemPosition = null;
             System.out.println(myAgent.getLocalName()+" JE CONTINUE DE CHASSER\n");
             if (cmptBlock == 0){
                 cmptBlock = 1;
@@ -322,52 +323,53 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         }
                         else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                     }
+                    else{
+                        for(List<Couple<Location,List<Couple<Observation,Integer>>>> lobs_ally : lobs_allies){
+                            for (Couple<Location,List<Couple<Observation,Integer>>> reachable_from_ally : lobs_ally){
+                                if (!reachable_from_ally.getRight().isEmpty()){
+                                    if(!next_allies_pos.contains(reachable_from_ally.getLeft().getLocationId())){
+                                        // My ally smells a stench but nobody goes for it
+                                        List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), reachable_from_ally.getLeft().getLocationId(), allies_pos);
 
-                    for(List<Couple<Location,List<Couple<Observation,Integer>>>> lobs_ally : lobs_allies){
-                        for (Couple<Location,List<Couple<Observation,Integer>>> reachable_from_ally : lobs_ally){
-                            if (!reachable_from_ally.getRight().isEmpty()){
-                                if(!next_allies_pos.contains(reachable_from_ally.getLeft().getLocationId())){
-                                    // My ally smells a stench but nobody goes for it
-                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), reachable_from_ally.getLeft().getLocationId(), allies_pos);
-
-                                    System.out.println(this.myAgent.getLocalName()+" Path to " +path + " to go to "+ reachable_from_ally.getLeft().getLocationId());
-                                    if (path!= null && path.size() > 0){
-                                        move = new gsLocation(path.get(0));
-                                        moves.add(move);
-                                        // So my next move is the 1st node in the shortest path to this stench
-                                        path.remove(0);
-                                        if (path.size()>0){
-                                            ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                        System.out.println(this.myAgent.getLocalName()+" Path to " +path + " to go to "+ reachable_from_ally.getLeft().getLocationId());
+                                        if (path!= null && path.size() > 0){
+                                            move = new gsLocation(path.get(0));
+                                            moves.add(move);
+                                            // So my next move is the 1st node in the shortest path to this stench
+                                            path.remove(0);
+                                            if (path.size()>0){
+                                                ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                            }
+                                            else{((ExploreFSMAgent) myAgent).setPathToG(null);}
+                                            continue;
                                         }
-                                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
-                                        continue;
+                                        System.out.println("I am "+myAgent.getLocalName()+" Shortest path = null ! pour aller a "+reachable_from_ally.getLeft().getLocationId());
                                     }
-                                    System.out.println("I am "+myAgent.getLocalName()+" Shortest path = null ! pour aller a "+reachable_from_ally.getLeft().getLocationId());
                                 }
                             }
                         }
-                    }
-                    for(String next_pos_ally : next_allies_pos){
-                        // I have to choose an adjacent node of the stench
-                        Set<String> e = this.myMap.getSerializableGraph().getEdges(next_pos_ally);
-                        List<String> edges = new ArrayList<String>(e);
-                        Collections.shuffle(edges);
-                        if (edges!= null){
-                            for(String edge : edges){
-                                if (!edge.equals(myPosition.getLocationId()) && edges.size()>1 && edge != null){
-                                    //List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), edge);
-                                    System.out.println(myAgent.getLocalName()+" I want to check the path to edge = "+edge);
-                                    List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
-                                    if(path!= null && path.size() > 0){
-                                        move = new gsLocation(path.get(0));
-                                        moves.add(move);
-                                        path.remove(0);
-                                        if (path.size()>0){
-                                            ((ExploreFSMAgent) myAgent).setPathToG(path);
+                        for(String next_pos_ally : next_allies_pos){
+                            // I have to choose an adjacent node of the stench
+                            Set<String> e = this.myMap.getSerializableGraph().getEdges(next_pos_ally);
+                            List<String> edges = new ArrayList<String>(e);
+                            Collections.shuffle(edges);
+                            if (edges!= null){
+                                for(String edge : edges){
+                                    if (!edge.equals(myPosition.getLocationId()) && edges.size()>1 && edge != null){
+                                        //List<String> path = this.myMap.getShortestPath(lobs.get(0).getLeft().getLocationId(), edge);
+                                        System.out.println(myAgent.getLocalName()+" I want to check the path to edge = "+edge);
+                                        List<String> path = this.myMap.getShortestPathWithoutPassing(lobs.get(0).getLeft().getLocationId(), edge, allies_pos);
+                                        if(path!= null && path.size() > 0){
+                                            move = new gsLocation(path.get(0));
+                                            moves.add(move);
+                                            path.remove(0);
+                                            if (path.size()>0){
+                                                ((ExploreFSMAgent) myAgent).setPathToG(path);
+                                            }
+                                            else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                                         }
-                                        else{((ExploreFSMAgent) myAgent).setPathToG(null);}
-                                    }
-                                }                            
+                                    }                            
+                                }
                             }
                         }
                     }
@@ -432,6 +434,10 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     Random r = new Random();
                     // int moveId=1+r.nextInt(lobs.size()-1);
                     int moveId;
+
+                    if(lobs.size()<=1){
+                        moveId = 0;
+                    }
 
                     if (lastVisitedNode == null) {
                         moveId = 1 + r.nextInt(lobs.size() - 1);
@@ -536,14 +542,8 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     // DO WE HAVE BLOCKED THE GOLEM ?
 
                     if(golemPosition!=null){
-                        boolean near = false;
-                        for(Couple<Location, List<Couple<Observation, Integer>>> obs : lobs){
-                            if (obs.getLeft().getLocationId().compareTo(golemPosition.getLocationId())==0){
-                                near = true;
-                            }
-                        }
                         Set<String> g_edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
-                        if(g_edges!=null && near){
+                        if(g_edges!=null){
                             boolean block = false;
                             for (String g_edge : g_edges){
                                 if (!g_edge.equals(myPosition.getLocationId()) && !allies_pos.contains(g_edge)){
