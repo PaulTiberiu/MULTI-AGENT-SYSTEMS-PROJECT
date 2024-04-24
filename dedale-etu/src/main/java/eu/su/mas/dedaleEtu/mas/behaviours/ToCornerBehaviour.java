@@ -199,7 +199,12 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         lobs.removeAll(remove);
         System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
-        System.out.println(myAgent.getLocalName()+" small_arity_nodes = "+small_arity_nodes);
+        List<Integer> degree = new ArrayList<Integer>();
+        for (String node : small_arity_nodes) {
+            degree.add(this.myMap.getNode(node).getDegree());
+        }
+
+        System.out.println(myAgent.getLocalName()+" small_arity_nodes = "+small_arity_nodes + " degree = "+ degree);
 
         for (String node : small_arity_nodes) {
             // Check if golem is blocked already on a smallest arity node
@@ -224,7 +229,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 List<String> shortest_path = this.myMap.getShortestPath(golemPosition.getLocationId(), node);
                 // System.out.println(myAgent.getLocalName() + " shortest_path from "+golemPosition+" to " + node + " = "+shortest_path);
                 // System.out.println(myAgent.getLocalName() + " length = "+shortest_path.size());
-                if(length > shortest_path.size()) {
+                if(shortest_path!=null && shortest_path.size()>0) {
                     length = shortest_path.size();
                     ((ExploreFSMAgent) this.myAgent).setPathToCorner(shortest_path);
                 }
@@ -312,13 +317,18 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                 ACLMessage messageRecept=this.myAgent.receive(mess);
 
+                int compt = 0;
                 while(messageRecept == null){
                     try {
-                        myAgent.doWait(1000);
+                        myAgent.doWait(500);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                     messageRecept=this.myAgent.receive(mess);
+                    if(compt > 20){
+                        return;
+                    }
+                    compt++;
                 }
 
                 // Catch the message and the move sent by the leader
@@ -354,6 +364,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                 ACLMessage msgR=this.myAgent.receive(msgT);
 
+                int compt = 0;
                 while(nbmsg<team.size()){
                     try {
                         myAgent.doWait(1000);   
@@ -376,6 +387,11 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                         }
                     }
                     msgR=this.myAgent.receive(msgT);
+                    
+                    if(compt>=10){
+                        return;
+                    }
+                    compt ++;
                 }
 
                 // Calcul the moves
@@ -567,13 +583,26 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 if (myPosition.getLocationId().equals(pathToCorner.get(0))) {
                     System.out.println(myAgent.getLocalName()+" I am on the path of the golem, I have to move");
                     moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
-                    while(moved==false && cmpt >= 25){
+                    while(moved==false && cmpt < 25){
                         try {
                             myAgent.doWait(500);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                        System.out.println(myAgent.getLocalName()+" J AI PAS REUSSI A ALLER SUR "+move);
+                        System.out.println(myAgent.getLocalName()+" J AI PAS REUSSI A ALLER SUR "+move+" J'ENVOIE UN MSG POUR DEMANDER LA PLACE");
+                        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                        msg.setProtocol("OUT");
+                        msg.setSender(this.myAgent.getAID());
+
+                        for (String agentName : receivers) {
+                            msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+                        }
+                        try {
+                            msg.setContentObject(move);
+                        }catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        ((AbstractDedaleAgent)this.myAgent).sendMessage(msg);
                         moved = ((AbstractDedaleAgent) myAgent).moveTo(move);
                         cmpt++;
                     }
@@ -632,7 +661,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                     }
                 }
 
-                // I am on the path of the golem and I go into him so I will notify the edges blocker to move !
+                // I am not on the path of the golem and I go into him so I will notify the edges blocker to move !
                 else{
                     try {
                         Thread.sleep(100);

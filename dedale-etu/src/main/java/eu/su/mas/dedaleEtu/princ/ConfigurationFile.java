@@ -53,8 +53,8 @@ public final class ConfigurationFile {
 	/**
 	 * The environment is either manually designed, or generated with a specific generator
 	 */
-	//public static GeneratorType GENERATOR_TYPE=GeneratorType.MANUAL;
-	public static GeneratorType GENERATOR_TYPE=GeneratorType.GS_GRID;
+	public static GeneratorType GENERATOR_TYPE=GeneratorType.MANUAL;
+	//public static GeneratorType GENERATOR_TYPE=GeneratorType.GS_GRID;
 
 	/**
 	 * 	The GateKeeper is in charge of the Platform and of the agents within, do not change its name.
@@ -74,14 +74,14 @@ public final class ConfigurationFile {
 	/**
 	 * Give the topology 
 	 */
-	public static String INSTANCE_TOPOLOGY=null;
+	//public static String INSTANCE_TOPOLOGY=null;
 	
 	// MAP ROBIN TEST
 	// public static String INSTANCE_TOPOLOGY="resources/topology/Robin-MAP";
 
 	//public static String INSTANCE_TOPOLOGY="resources/topology/map2020-topologyExam1-graph.dgs";
 	//public static String INSTANCE_TOPOLOGY="resources/topology/HouatTopology";
-	//public static String INSTANCE_TOPOLOGY="resources/topology/map2018-topology-ica"; //TROP BIEN POUR LES TESTS
+	public static String INSTANCE_TOPOLOGY="resources/topology/map2018-topology-ica"; //TROP BIEN POUR LES TESTS
 	//public static String INSTANCE_TOPOLOGY="resources/topology/map2021-topologyExam1-tree.dgs";
 	//public static String INSTANCE_TOPOLOGY="resources/interlocking/mapInterlocking2-topology";
 	//public static String INSTANCE_TOPOLOGY="resources/topology/map2023-topologyExam.dgs";

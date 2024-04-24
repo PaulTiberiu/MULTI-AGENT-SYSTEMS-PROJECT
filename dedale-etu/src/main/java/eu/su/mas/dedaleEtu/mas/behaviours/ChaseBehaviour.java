@@ -66,18 +66,29 @@ public class ChaseBehaviour extends SimpleBehaviour {
         System.out.println(this.myAgent.getLocalName()+" -- myCurrentPosition is: "+myPosition);
         
         int cmptBlock = ((ExploreFSMAgent) myAgent).getCmptBlock();
-        System.out.println(myAgent.getLocalName()+" CMPT BLOCK = "+cmptBlock);
 
         if(cmptBlock >= 20){
             List<String> midPath = this.myMap.getMidPath(myPosition.getLocationId());
             ((ExploreFSMAgent) myAgent).setPathToG(midPath);
-            System.out.println(myAgent.getLocalName()+" MID PATH = "+midPath);
             ((ExploreFSMAgent) myAgent).setCmptBlock(0);
         }
         else if(cmptBlock > 0){
             cmptBlock++;
             ((ExploreFSMAgent) myAgent).setCmptBlock(cmptBlock);
         }
+
+        //List of observable from the agent's current position
+        List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
+        List<Couple<Location,List<Couple<Observation,Integer>>>> toRemove = new ArrayList<Couple<Location,List<Couple<Observation,Integer>>>>();
+        for(Couple<Location,List<Couple<Observation,Integer>>> o : lobs){
+            Node n = this.myMap.getNode(o.getLeft().getLocationId());
+            if(n == null){
+                System.out.println("ON REGARDE UN NOEUD SUPPRIME");
+                toRemove.add(o);
+            }
+        }
+        lobs.removeAll(toRemove);
+        System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
         MessageTemplate Templatemsg=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("LEAVE"),
@@ -113,16 +124,67 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 this.myMap.removeNode(golemPosition.getLocationId());
                 removed.add(golemPosition.getLocationId());
             }
-            System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
+            if(removed.size()>0)
+                System.out.println(myAgent.getLocalName()+" Nodes removed = "+removed);
             ((ExploreFSMAgent) this.myAgent).setGolemPosition(null);
             golemPosition = null;
-            System.out.println(myAgent.getLocalName()+" JE CONTINUE DE CHASSER\n");
             if (cmptBlock == 0){
                 cmptBlock = 1;
                 ((ExploreFSMAgent) myAgent).setCmptBlock(cmptBlock);
             }
         }
 
+        MessageTemplate msgTemp=MessageTemplate.and(
+            MessageTemplate.MatchProtocol("OUT"),
+            MessageTemplate.MatchPerformative(ACLMessage.INFORM));
+        ACLMessage msgOut=this.myAgent.receive(msgTemp);
+
+        if(msgOut!=null){
+            System.out.println("I HAVE TO GO OUT!");
+
+            try {
+                gsLocation avoid = (gsLocation) msgOut.getContentObject();
+
+                Random r = new Random();
+                Integer moveId = null;
+                boolean moved = false;
+
+                while(!moved){
+                    if(moveId!=null){
+                        lobs.remove((int) 
+                        moveId);
+                    }
+
+                    if(lobs.size()<=1){
+                        moveId = 0;
+                    }
+
+                    moveId = 1 + r.nextInt(lobs.size() - 1);
+                    while (lobs.get(moveId).getLeft().getLocationId().equals(avoid.getLocationId()) && lobs.size() > 2){
+                        moveId = 1 + r.nextInt(lobs.size() - 1);
+                    }
+
+                    gsLocation move = (gsLocation) lobs.get(moveId).getLeft();
+                    
+                    ((ExploreFSMAgent) this.myAgent).setLastVisitedNode(myPosition.getLocationId());
+
+                    ((ExploreFSMAgent) this.myAgent).setNextMove(move);
+
+                    moved = ((AbstractDedaleAgent)this.myAgent).moveTo(move);
+                }
+
+                if(moved){
+                    System.out.println("I managed to move out !");
+                }
+                else{
+                    System.out.println("I failed to move out !");
+                }
+
+                return;
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }           
+        }
 
         MessageTemplate msgTemplate=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("PING"),
@@ -212,28 +274,29 @@ public class ChaseBehaviour extends SimpleBehaviour {
             }
 
             if(block != null && block==1 && ((ExploreFSMAgent) myAgent).isBlock()==true && golemPosition!=null){  // We blocked the golem !
-                ((ExploreFSMAgent) myAgent).setBlock(true);
-                exitValue = 3;
-                System.out.println("\n\n\n "+myAgent.getLocalName()+"---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
+                boolean near = false;
+                Set<String> g_edge = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                if(g_edge!=null){
+                    if(g_edge.contains(golemPosition.getLocationId())){
+                        near = true;
+                    }
+                }
+
+                if(near){
+                    ((ExploreFSMAgent) myAgent).setBlock(true);
+                    exitValue = 3;
+                    System.out.println("\n\n\n "+myAgent.getLocalName()+"---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
+                }
+                else{
+                    ((ExploreFSMAgent) myAgent).setBlock(false);
+                }
+
                 ((ExploreFSMAgent) myAgent).setSendersInfos(null);
                 return;
             }
             else{
                 ((ExploreFSMAgent) myAgent).setBlock(false);
             }
-
-            //List of observable from the agent's current position
-            List<Couple<Location,List<Couple<Observation,Integer>>>> lobs=((AbstractDedaleAgent)this.myAgent).observe();//myPosition
-            List<Couple<Location,List<Couple<Observation,Integer>>>> toRemove = new ArrayList<Couple<Location,List<Couple<Observation,Integer>>>>();
-            for(Couple<Location,List<Couple<Observation,Integer>>> o : lobs){
-                Node n = this.myMap.getNode(o.getLeft().getLocationId());
-                if(n == null){
-                    System.out.println("ON REGARDE UN NOEUD SUPPRIME");
-                    toRemove.add(o);
-                }
-            }
-            lobs.removeAll(toRemove);
-            System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
             
             boolean isGolem = false;
             List<gsLocation> stenches = new ArrayList<gsLocation>();
@@ -292,9 +355,9 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     if (golemPosition != null){
 
                         Set<String> edges_g = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
-                        List<String> edges_golem = new ArrayList<String>(edges_g);
-                        Collections.shuffle(edges_golem);
-                        if(edges_golem != null){
+                        if(edges_g != null){
+                            List<String> edges_golem = new ArrayList<String>(edges_g);
+                            Collections.shuffle(edges_golem);
                             System.out.println(this.myAgent.getLocalName()+" I dont smell and I know where is the golem so edges_golem = "+edges_golem);
                             for(String edge : edges_golem){
                                 if (edge.equals(myPosition.getLocationId()) && edges_golem.size()>1 && !next_allies_pos.contains(edge)){
