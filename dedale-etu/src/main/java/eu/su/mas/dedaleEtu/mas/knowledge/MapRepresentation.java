@@ -496,7 +496,7 @@ public class MapRepresentation implements Serializable {
 
         for (Node node : this.g) {
             int degree = node.getDegree();
-            if (degree < minDegree) {
+            if (degree >= 1 && degree < minDegree) {
                 minDegree = degree;
                 nodesWithSmallestArity.clear();
                 nodesWithSmallestArity.add(node.getId());

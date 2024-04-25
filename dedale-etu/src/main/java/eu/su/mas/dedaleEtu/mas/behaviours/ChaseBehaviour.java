@@ -21,10 +21,14 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+
 import org.graphstream.graph.Edge;
 
 
@@ -90,6 +94,19 @@ public class ChaseBehaviour extends SimpleBehaviour {
         lobs.removeAll(toRemove);
         System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
+        
+        this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
+
+        Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
+        while(iter.hasNext()){
+            Location accessibleNode=iter.next().getLeft();
+            this.myMap.addNewNode(accessibleNode.getLocationId());
+            //the node may exist, but not necessarily the edge
+            if (myPosition.getLocationId()!=accessibleNode.getLocationId()) {
+                this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
+            }
+        }
+
         MessageTemplate Templatemsg=MessageTemplate.and(
 			MessageTemplate.MatchProtocol("LEAVE"),
 			MessageTemplate.MatchPerformative(ACLMessage.INFORM));
@@ -99,6 +116,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
             // If I receive a message to chase another golem, and I am not adjacent to the golem, I am passing to chaseBehaviour
             System.out.println("I HAVE TO LEAVE !");
             ((ExploreFSMAgent) myAgent).setBlock(false);
+            ((ExploreFSMAgent) myAgent).setBlockAlone(false);
 
             try {
                 ((ExploreFSMAgent)myAgent).setGolemPosition(new gsLocation((String) msgReception.getContentObject()));
@@ -158,10 +176,11 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     if(lobs.size()<=1){
                         moveId = 0;
                     }
-
-                    moveId = 1 + r.nextInt(lobs.size() - 1);
-                    while (lobs.get(moveId).getLeft().getLocationId().equals(avoid.getLocationId()) && lobs.size() > 2){
+                    else{
                         moveId = 1 + r.nextInt(lobs.size() - 1);
+                        while (lobs.get(moveId).getLeft().getLocationId().equals(avoid.getLocationId()) && lobs.size() > 2){
+                            moveId = 1 + r.nextInt(lobs.size() - 1);
+                        }
                     }
 
                     gsLocation move = (gsLocation) lobs.get(moveId).getLeft();
@@ -251,6 +270,10 @@ public class ChaseBehaviour extends SimpleBehaviour {
             }
             else{
                 System.out.println("I am "+this.myAgent.getLocalName()+" and I didnt receive any information");
+                if(((ExploreFSMAgent) myAgent).isBlockAlone()){
+                    block = 1;
+                    System.out.println("\n\n\n\n\n\n\n\n\n");
+                }
             }
             
             if(golemPosition==null){
@@ -277,7 +300,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 boolean near = false;
                 Set<String> g_edge = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
                 if(g_edge!=null){
-                    if(g_edge.contains(golemPosition.getLocationId())){
+                    if(g_edge.contains(myPosition.getLocationId())){
                         near = true;
                     }
                 }
@@ -286,16 +309,22 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     ((ExploreFSMAgent) myAgent).setBlock(true);
                     exitValue = 3;
                     System.out.println("\n\n\n "+myAgent.getLocalName()+"---------------------- WE BLOCKED THE GOLEM -------------------\n\n\n");
-                }
-                else{
-                    ((ExploreFSMAgent) myAgent).setBlock(false);
+                    ((ExploreFSMAgent) myAgent).setSendersInfos(null);
+                    return;
                 }
 
-                ((ExploreFSMAgent) myAgent).setSendersInfos(null);
-                return;
+                
+            }
+            else if (block != null && block==1 && ((ExploreFSMAgent) myAgent).isBlockAlone()==true && golemPosition!=null){
+                ((ExploreFSMAgent) myAgent).setBlock(true);
+                    exitValue = 3;
+                    System.out.println("\n\n\n "+myAgent.getLocalName()+"---------------------- I BLOCKED THE GOLEM -------------------\n\n\n");
+                    ((ExploreFSMAgent) myAgent).setSendersInfos(null);
+                    return;
             }
             else{
                 ((ExploreFSMAgent) myAgent).setBlock(false);
+                ((ExploreFSMAgent) myAgent).setBlockAlone(false);
             }
             
             boolean isGolem = false;
@@ -501,17 +530,17 @@ public class ChaseBehaviour extends SimpleBehaviour {
                     if(lobs.size()<=1){
                         moveId = 0;
                     }
-
-                    if (lastVisitedNode == null) {
-                        moveId = 1 + r.nextInt(lobs.size() - 1);
-                    } else {
-                        // Select a random move different from the last visited node
-                        moveId = 1 + r.nextInt(lobs.size() - 1);
-                        while (lobs.get(moveId).getLeft().getLocationId().equals(lastVisitedNode) && lobs.size() > 2){
+                    else{
+                        if (lastVisitedNode == null) {
                             moveId = 1 + r.nextInt(lobs.size() - 1);
-                        }
+                        } else {
+                            // Select a random move different from the last visited node
+                            moveId = 1 + r.nextInt(lobs.size() - 1);
+                            while (lobs.get(moveId).getLeft().getLocationId().equals(lastVisitedNode) && lobs.size() > 2){
+                                moveId = 1 + r.nextInt(lobs.size() - 1);
+                            }
+                        }    
                     }
-
                     move = (gsLocation) lobs.get(moveId).getLeft();
                     moves.add(move);
 
@@ -751,6 +780,38 @@ public class ChaseBehaviour extends SimpleBehaviour {
                 }
                 else{   // I didnt received any information so I just go to the stench I am smelling
 
+                    // DO I HAVE BLOCK THE GOLEM ?
+                    if(golemPosition!=null){
+                        Set<String> g_edges = this.myMap.getSerializableGraph().getEdges(golemPosition.getLocationId());
+                        if(g_edges!=null){
+                            boolean block = false;
+                            for (String g_edge : g_edges){
+                                if (!g_edge.equals(myPosition.getLocationId())){
+                                    block = false;
+                                    break;
+                                }
+                                else{
+                                    block = true;
+                                }
+                            }
+                            if (block == true){
+                                System.out.println(myAgent.getLocalName()+" I BLOCKED THE GOLEM");
+                                ((ExploreFSMAgent) myAgent).setBlockAlone(block);
+                            }
+                        }
+                    }
+
+                    if (golemPosition != null){
+                        System.out.println(myAgent.getLocalName()+" Je connais la position du golem = "+golemPosition);
+                        for(Couple<Location, List<Couple<Observation, Integer>>> lobs_position : lobs){
+                            if (golemPosition.getLocationId().equals(lobs_position.getLeft().getLocationId())){
+                                move = (gsLocation) golemPosition;
+                                System.out.println(myAgent.getLocalName()+" The golem is in front of me so I move into him");
+                                break;
+                            }
+                        }
+                    }
+
                     if(pathToG!=null){
                         move = new gsLocation(pathToG.get(0));
                         pathToG.remove(0);
@@ -760,18 +821,20 @@ public class ChaseBehaviour extends SimpleBehaviour {
                         else{((ExploreFSMAgent) myAgent).setPathToG(null);}
                     }
 
-                    List<gsLocation> stenches_copy = new ArrayList<gsLocation>();
-                    stenches_copy.addAll(stenches);
-                    for(int i=random.nextInt(0,stenches_copy.size()); stenches_copy.size()>1; i=random.nextInt(0,stenches_copy.size())){
-                        gsLocation stench = stenches_copy.get(i);
-                        if(((ExploreFSMAgent)myAgent).getLastVisitedNode() == null || !((ExploreFSMAgent)myAgent).getLastVisitedNode().equals(stench.getLocationId())){
-                            System.out.println(myAgent.getLocalName()+" I chose randomly this stench : "+stench.getLocationId());
-                            move = stench;
-                        }
-                        stenches_copy.remove(i);
-                    }
                     if(move == null){
-                        move = stenches_copy.get(0);
+                        List<gsLocation> stenches_copy = new ArrayList<gsLocation>();
+                        stenches_copy.addAll(stenches);
+                        for(int i=random.nextInt(0,stenches_copy.size()); stenches_copy.size()>1; i=random.nextInt(0,stenches_copy.size())){
+                            gsLocation stench = stenches_copy.get(i);
+                            if(((ExploreFSMAgent)myAgent).getLastVisitedNode() == null || !((ExploreFSMAgent)myAgent).getLastVisitedNode().equals(stench.getLocationId())){
+                                System.out.println(myAgent.getLocalName()+" I chose randomly this stench : "+stench.getLocationId());
+                                move = stench;
+                            }
+                            stenches_copy.remove(i);
+                        }
+                        if(move == null){
+                            move = stenches_copy.get(0);
+                        }
                     }
                 }
 

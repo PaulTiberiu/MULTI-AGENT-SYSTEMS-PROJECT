@@ -39,6 +39,7 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
 	private String nextNode;
 	private gsLocation golemPosition;
 	private boolean block = false;
+	private boolean blockAlone = false;
 	private List<String> pathToG;
 	private List<String> pathToCorner;
 	private List<Couple<String, Couple<String, List<Couple<Location, List<Couple<Observation, Integer>>>>>>> sendersInfos;
@@ -313,6 +314,14 @@ public class ExploreFSMAgent extends AbstractDedaleAgent {
         this.block = block;
     }
 	
+	public boolean isBlockAlone() {
+        return this.blockAlone;
+    }
+
+	public void setBlockAlone(boolean blockAlone) {
+        this.blockAlone = blockAlone;
+    }
+
 	public void setPathToCorner(List<String> shortest_path){
 		this.pathToCorner = shortest_path;
 	}

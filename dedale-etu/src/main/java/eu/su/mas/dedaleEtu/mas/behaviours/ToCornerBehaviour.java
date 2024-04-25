@@ -84,6 +84,7 @@ public class ToCornerBehaviour extends SimpleBehaviour {
             System.out.println("THEY TOLD ME TO LEAVE !!");
             exitValue = 1;
             ((ExploreFSMAgent) myAgent).setBlock(false);
+            ((ExploreFSMAgent) myAgent).setBlockAlone(false);
 
             try {
                 ((ExploreFSMAgent)myAgent).setGolemPosition(new gsLocation((String) msgRecept.getContentObject()));
@@ -225,18 +226,18 @@ public class ToCornerBehaviour extends SimpleBehaviour {
                 }
             }
 
-            if(leader.compareTo(myAgent.getLocalName())==0 && pathToCorner==null){
+            if(leader.compareTo(myAgent.getLocalName())==0){
                 List<String> shortest_path = this.myMap.getShortestPath(golemPosition.getLocationId(), node);
                 // System.out.println(myAgent.getLocalName() + " shortest_path from "+golemPosition+" to " + node + " = "+shortest_path);
                 // System.out.println(myAgent.getLocalName() + " length = "+shortest_path.size());
-                if(shortest_path!=null && shortest_path.size()>0) {
+                if(shortest_path!=null && shortest_path.size()>0 && shortest_path.size()<length) {
                     length = shortest_path.size();
                     ((ExploreFSMAgent) this.myAgent).setPathToCorner(shortest_path);
                 }
             }
         }
 
-        if(leader != null && leader.compareTo(this.myAgent.getLocalName())==0 && pathToCorner==null) {
+        if(leader != null && leader.compareTo(this.myAgent.getLocalName())==0 && pathToCorner!=null) {
             // I am the leader, I need to send to everybody my shortest path to a corner
 
             pathToCorner = ((ExploreFSMAgent) this.myAgent).getPathToCorner();
@@ -265,6 +266,20 @@ public class ToCornerBehaviour extends SimpleBehaviour {
         pathToCorner = ((ExploreFSMAgent) myAgent).getPathToCorner();
 
         if(pathToCorner!=null && pathToCorner.size()>0){
+
+            ACLMessage msgOut = new ACLMessage(ACLMessage.INFORM);
+            msgOut.setProtocol("OUT");
+            msgOut.setSender(this.myAgent.getAID());
+
+            for (String agentName : receivers) {
+                msgOut.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+            }
+            try {
+                msgOut.setContentObject(myPosition);
+            }catch (Exception e) {
+                e.printStackTrace();
+            }
+            ((AbstractDedaleAgent)this.myAgent).sendMessage(msgOut);
 
             // To chose the node to move to, we need to communicate to make sure we will block the golem on the next node
             // To do so, we will take a node at the edge of the next position in the path and we will check if everyone can move to an edge with only 1 move
