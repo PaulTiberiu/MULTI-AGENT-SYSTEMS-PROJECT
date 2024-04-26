@@ -71,7 +71,7 @@ public class ChaseBehaviour extends SimpleBehaviour {
         
         int cmptBlock = ((ExploreFSMAgent) myAgent).getCmptBlock();
 
-        if(cmptBlock >= 20){
+        if(cmptBlock >= 15){
             List<String> midPath = this.myMap.getMidPath(myPosition.getLocationId());
             ((ExploreFSMAgent) myAgent).setPathToG(midPath);
             ((ExploreFSMAgent) myAgent).setCmptBlock(0);
@@ -94,7 +94,6 @@ public class ChaseBehaviour extends SimpleBehaviour {
         lobs.removeAll(toRemove);
         System.out.println(this.myAgent.getLocalName()+" -- list of observables: "+lobs);
 
-        
         this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 
         Iterator<Couple<Location, List<Couple<Observation, Integer>>>> iter=lobs.iterator();
@@ -161,11 +160,18 @@ public class ChaseBehaviour extends SimpleBehaviour {
             System.out.println("I HAVE TO GO OUT!");
 
             try {
+                List<String> midPath = this.myMap.getMidPath(myPosition.getLocationId());
+                ((ExploreFSMAgent) myAgent).setPathToG(midPath);
+
                 gsLocation avoid = (gsLocation) msgOut.getContentObject();
 
                 Random r = new Random();
                 Integer moveId = null;
                 boolean moved = false;
+
+                if(midPath!=null && midPath.size()>0){
+                    moved = ((AbstractDedaleAgent)this.myAgent).moveTo((new gsLocation(midPath.get(0))));
+                }
 
                 while(!moved){
                     if(moveId!=null){

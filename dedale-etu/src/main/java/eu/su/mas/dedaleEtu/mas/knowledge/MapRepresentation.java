@@ -525,9 +525,14 @@ public class MapRepresentation implements Serializable {
 				longest_path = path;
 			}
 		}
-		String node = longest_path.get(longest_path.size()/2);
-		System.out.println(longest_path.size()/2+" node to go "+node);
-		return getShortestPath(myPos, node);
+		if(longest_path.size()>1){
+			String node = longest_path.get(longest_path.size()/2);
+			System.out.println(longest_path.size()/2+" node to go "+node);
+			return getShortestPath(myPos, node);
+		}
+		else{
+			return null;
+		}
 	}
 
 

@@ -66,6 +66,17 @@
   "lockPickingExpertise":3
   },
   { 
+    "agentType":"agentCollect",
+    "agentName": "Speed",
+    "communicationRange": 3,
+    "initialLocation": "free",
+    "backPackCapacityGold": 15,
+    "backPackCapacityDiamond":-1, 
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":3
+    },
+  { 
     "agentType":"wumpus",
     "agentName": "G1",
     "communicationRange": 0,
@@ -79,6 +90,17 @@
   { 
     "agentType":"wumpus",
     "agentName": "G2",
+    "communicationRange": 0,
+    "initialLocation": "free",
+    "backPackCapacityGold": 200,
+    "backPackCapacityDiamond":-1, 
+    "detectionRadius": 2,
+    "strengthExpertise": 0,
+    "lockPickingExpertise":0
+  },
+  { 
+    "agentType":"wumpus",
+    "agentName": "G3",
     "communicationRange": 0,
     "initialLocation": "free",
     "backPackCapacityGold": 200,
