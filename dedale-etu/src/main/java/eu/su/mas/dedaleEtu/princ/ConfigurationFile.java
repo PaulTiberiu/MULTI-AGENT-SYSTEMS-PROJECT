@@ -78,8 +78,8 @@ public final class ConfigurationFile {
 
 
 	//MAP EXAM
-	public static String INSTANCE_TOPOLOGY="resources/topology/map2024-topologyExam1.dgs";
-	//public static String INSTANCE_TOPOLOGY="resources/topology/map2024-topologyExam2.dgs";
+	//public static String INSTANCE_TOPOLOGY="resources/topology/map2024-topologyExam1.dgs";
+	public static String INSTANCE_TOPOLOGY="resources/topology/map2024-topologyExam2.dgs";
 	
 	// MAP ROBIN TEST
 	// public static String INSTANCE_TOPOLOGY="resources/topology/Robin-MAP";
@@ -161,8 +161,8 @@ public final class ConfigurationFile {
 	 */
 
 
-	public static String INSTANCE_CONFIGURATION_ENTITIES="resources/map2024-1-entities.json";
-	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/map2024-2-entities.json";
+	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/map2024-1-entities.json";
+	public static String INSTANCE_CONFIGURATION_ENTITIES="resources/map2024-2-entities.json";
 
 
 	//public static String INSTANCE_CONFIGURATION_ENTITIES=null;
