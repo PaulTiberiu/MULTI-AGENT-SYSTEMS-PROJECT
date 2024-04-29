@@ -1448,3 +1448,6 @@ Ronaldo : 97 nb closed nodes = 110
 Messi : 105 nb closed nodes = 110
 Speed : 101 nb closed nodes = 110
 Tibi : 109 nb closed nodes = 110
+H3 : 300 nb closed nodes = 109
+H2 : 300 nb closed nodes = 109
+H1 : 300 nb closed nodes = 109

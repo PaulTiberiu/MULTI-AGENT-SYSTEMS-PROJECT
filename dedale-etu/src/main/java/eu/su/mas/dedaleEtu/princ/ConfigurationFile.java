@@ -154,9 +154,14 @@ public final class ConfigurationFile {
 	/**
 	 * Must'nt be null as it describes the native agents' capabilities 
 	 */
+
+
+	public static String INSTANCE_CONFIGURATION_ENTITIES="resources/map2024-1-entities.json";
+
+
 	//public static String INSTANCE_CONFIGURATION_ENTITIES=null;
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExplo.json";
-	public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExplo-2.json";
+	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExplo-2.json";
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExploCoop-2";
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/agentExploCoop-2.json";
 	//public static String INSTANCE_CONFIGURATION_ENTITIES="resources/treasureHunt/map2023-entities.json";
