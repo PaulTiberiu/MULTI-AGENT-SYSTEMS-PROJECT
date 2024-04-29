@@ -55,7 +55,8 @@ public class ChaseBehaviour extends SimpleBehaviour {
     @Override
     public void action() {
         try {
-            Thread.sleep(500);
+            //Thread.sleep(500);
+            Thread.sleep(400);
         } catch (Exception e) {
             e.printStackTrace();
         }
